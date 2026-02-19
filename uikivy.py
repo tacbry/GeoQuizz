@@ -1,14 +1,18 @@
 from pathlib import Path
 from kivy.app import App
 from kivy.graphics import Color, Ellipse
+from kivy.properties import StringProperty
 from kivy.uix import boxlayout
 from kivy.uix.image import Image
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
-from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.relativelayout import RelativeLayout
+from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
+from kivy.uix.slider import Slider
 from kivy.uix.stacklayout import StackLayout
+from kivy.uix.textinput import TextInput
 
 import engine
 from main import Appli
@@ -16,9 +20,7 @@ from main import Appli
 """
 THEME
 """
-BACKGROUND_COLOR = "azure3"
-MENU_FONT = ('Arial',16, 'bold')
-BUTTON_FONT = ('Arial', 12)
+
 
 # Couleurs du thème (rgba)
 NOIR = (0, 0, 0, 1)
@@ -37,25 +39,47 @@ CONSTANTES
 BASEPATH = Path(__name__).parent #permet l'utilisation sur tous les systemes
 """"""
 
+class BaseScreen(Screen): #semble être la méthode la plus appropriée pour gerer le passage de variable. De plus la génération auto a directmeent compris
+    @property
+    def app(self):
+        return App.get_running_app()
 
-class AfficherMenu(Screen):
+
+class DrawLogo(RelativeLayout):
+    def __init__(self, **kwargs):
+        kwargs.setdefault("size_hint_y", None)
+        kwargs.setdefault("height", 100)
+        super(DrawLogo, self).__init__(**kwargs)
+
+        with self.canvas.before:
+            Color(BLANC)  # Blanc
+            self.cercle_fond = Ellipse()
+
+        # 2. L'image du logo
+        self.image = Image(source="images/applogo.png")
+        self.add_widget(self.image)
+
+        # 3. On lie le redimensionnement
+        self.bind(pos=self.update_graphics, size=self.update_graphics)
+
+    def update_graphics(self, instance, value):
+        diametre = min(self.size)
+        self.cercle_fond.size = (diametre, diametre)
+        # On centre dans le RelativeLayout
+        self.cercle_fond.pos = (
+            (self.width - diametre) / 2,
+            (self.height - diametre) / 2
+        )
+
+
+
+class AfficherMenu(BaseScreen):
     def __init__(self, **kwargs):
         super(AfficherMenu, self).__init__(**kwargs)
 
-        layout = StackLayout(orientation='tb-lr')# tblr => top-bottom, left-right
-        self.logo = Image(
-            source="images/applogo.png",
-            size_hint_y=None,
-        )
+        layout = StackLayout(orientation='tb-lr', padding = 20, spacing = 20)# tblr => top-bottom, left-right
 
-        with self.logo.canvas.before:  # before pour passer avant (donc en dessous)
-            Color(1, 1, 1, 1)  # Blanc
-            self.cercle_fond = Ellipse(size=self.logo.size, pos=self.logo.pos)
-
-        self.logo.bind(pos=self.draw_circle, size=self.draw_circle)
-
-        layout.add_widget(self.logo)
-
+        layout.add_widget(DrawLogo())
 
         layout.add_widget(
             Button(
@@ -84,32 +108,28 @@ class AfficherMenu(Screen):
         self.add_widget(layout)
 
     def go_submenu_mode(self,instance):         #instance indiqué comme inutilisé mais qd meme necessaire
-        self.manager.get_screen('smenu_mode').logo = self.logo
-        self.manager.current = 'smenu_mode'
+        #self.app.root.transition = SlideTransition(direction="left")
+        #self.manager.current = 'smenu_mode'
+        self.app.root.current = 'smenu_mode' #self.app.root est le scrren manager
 
 
 
-    def draw_circle(self, instance, value):
-        diametre = min(instance.size)
-
-        #centrer le cercle
-        self.cercle_fond.size = (diametre, diametre)
-        self.cercle_fond.pos = (
-            instance.center_x - diametre / 2,
-            instance.center_y - diametre / 2
-        )
-
-
-
-class SubmenuMode(Screen):
+class SubmenuMode(BaseScreen):
     def __init__(self, **kwargs):
         super(SubmenuMode, self).__init__(**kwargs)
         self.logo = None
         self.mode = None
 
-        layout = StackLayout(orientation='tb-lr')  # tblr => top-bottom, left-right
+        layout = StackLayout(orientation='tb-lr', padding = 20, spacing = 20)  # tblr => top-bottom, left-right
 
-        #layout.add_widget(self.logo)
+        layout.add_widget(DrawLogo())
+
+        layout_pseudo = BoxLayout(orientation='horizontal', padding = 20, spacing = 20, height = 50, size_hint_y = None)
+        self.pseudo_label = Label(text="Pseudo : ", size_hint_y=None, height=30)
+        self.input_pseudo = TextInput(text=self.app.pseudo, multiline=False, size_hint_y=None, height = 30)
+        layout_pseudo.add_widget(self.pseudo_label)
+        layout_pseudo.add_widget(self.input_pseudo)
+        layout.add_widget(layout_pseudo)#textinput
 
         layout.add_widget(
             Button(
@@ -144,25 +164,44 @@ class SubmenuMode(Screen):
 
         self.add_widget(layout)
 
+    def on_pre_enter(self, *args):
+        ...
+
     def go_back(self, instance):
-        self.manager.current = self.manager.previous()
+        self.app.root.current = self.manager.previous()
 
     def go_submenu_cont_by_mar(self,instance):
-        self.manager.current = 'smenu_cont'
+        self.app.mode = 'mar'
+        self.app.pseudo = self.input_pseudo.text
+        self.app.root.current = 'smenu_cont'
 
     def go_submenu_cont_by_norm(self,instance):
-        self.manager.current = 'smenu_cont'
+        self.app.mode = 'norm'
+        self.app.pseudo = self.input_pseudo.text
+        self.app.root.current = 'smenu_cont'
+
+    def update_pseudo(self, instance, value):
+        self.app.pseudo = self.input_pseudo.text
 
 
 
 
-class SubmenuCont(Screen):
+class SubmenuCont(BaseScreen):
     def __init__(self, **kwargs):
         super(SubmenuCont, self).__init__(**kwargs)
 
-        layout = StackLayout(orientation='tb-lr')  # tblr => top-bottom, left-right
+        layout = StackLayout(orientation='tb-lr', padding = 20, spacing = 20)  # tblr => top-bottom, left-right
 
-        #layout.add_widget(self.logo)
+        layout.add_widget(DrawLogo())
+
+        self.label_mode = Label(text="",size_hint_y=None, height=40)
+
+        self.label_pseudo = Label(text="", size_hint_y=None, height=30)
+
+        layout.add_widget(self.label_pseudo)
+
+        layout.add_widget(self.label_mode)
+
 
         layout.add_widget(
             Button(
@@ -236,21 +275,36 @@ class SubmenuCont(Screen):
 
         self.add_widget(layout)
 
+    def on_pre_enter(self):
+        print(self.app.mode)
+        if self.app.mode == 'mar':
+            self.label_mode.text = 'Mode Marathon'
+        elif self.app.mode == 'norm':
+            self.label_mode.text = 'Mode Normal'
 
+        self.label_pseudo.text = f"Pseudo : {self.app.pseudo}"
+
+
+
+
+
+    def on_press(self):
+        #self.label_mode = self.app.mode
+        ...
 
     def go_back(self, instance):
-        self.manager.current = self.manager.previous()
+        self.app.root.current = self.manager.previous()
 
 
-    def draw_circle(self, instance, value):
-        diametre = min(instance.size)
-
-        # centrer le cercle
-        self.cercle_fond.size = (diametre, diametre)
-        self.cercle_fond.pos = (
-            instance.center_x - diametre / 2,
-            instance.center_y - diametre / 2
-        )
+    # def draw_circle(self, instance, value):
+    #     diametre = min(instance.size)
+    #
+    #     # centrer le cercle
+    #     self.cercle_fond.size = (diametre, diametre)
+    #     self.cercle_fond.pos = (
+    #         instance.center_x - diametre / 2,
+    #         instance.center_y - diametre / 2
+    #     )
 
 
 

@@ -43,7 +43,8 @@ def get_flag(iso):
 
 
 
-
+def get_capitals(iso):
+    return BASEPATH / "capitals" / f"{iso}.csv"
 
 
 

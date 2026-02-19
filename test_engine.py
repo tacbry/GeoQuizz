@@ -13,3 +13,7 @@ def test_charger_country_data_raise_exception(path):
     with pytest.raises(FileNotFoundError,match="aucun fichier trouvé/utilisation du fichier par défaut"):
         engine.load_country_data(path)
 
+
+
+#un test qui test tous les iso
+

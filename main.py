@@ -1,5 +1,6 @@
 from kivy.core.window import Window
 from kivy.lang import Builder
+from kivy.properties import StringProperty
 
 from engine import *
 from uikivy import *
@@ -16,26 +17,27 @@ BASEPATH = Path(__name__).parent
 class Appli(App):
     title = "GéoQuizz"
     icon = 'images/applogo.ico'
-    Window.clearcolor = (0.15, 0.15, 0.15, 1)
+
+    #variables partagées
+    pseudo  =StringProperty("Joueur 1")
+    mode = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut")
+
 
 
     def build(self):
-        root = StackLayout(orientation='tb-lr')
-
+        Window.clearcolor = (0.15, 0.15, 0.15, 1)
+        Window.size = (800, 1000)
         #Builder.load_file("affichermenu.kv") #ne gere pas path
 
         #gestionnaire d'écrans
-        sm = ScreenManager()
-        sm.add_widget(AfficherMenu(name='menu'))
-        sm.add_widget(SubmenuMode(name='smenu_mode'))
-        sm.add_widget(SubmenuCont(name='smenu_cont'))
+        self.sm = ScreenManager()
+        self.sm.add_widget(AfficherMenu(name='menu'))
+        self.sm.add_widget(SubmenuMode(name='smenu_mode'))
+        self.sm.add_widget(SubmenuCont(name='smenu_cont'))
 
+        self.sm.current = 'menu'
 
-        sm.current = 'menu'
-
-        root.add_widget(sm)
-
-        return root
+        return self.sm
 
 
 
