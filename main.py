@@ -19,9 +19,10 @@ class Appli(App):
     icon = 'images/applogo.ico'
 
     #variables partagées
-    pseudo  =StringProperty("Joueur 1")
+    pseudo  =StringProperty("Player 1")
     mode = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut")
-
+    continent = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut")
+    type_quizz = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut")
 
 
     def build(self):
@@ -34,6 +35,9 @@ class Appli(App):
         self.sm.add_widget(AfficherMenu(name='menu'))
         self.sm.add_widget(SubmenuMode(name='smenu_mode'))
         self.sm.add_widget(SubmenuCont(name='smenu_cont'))
+        self.sm.add_widget(SubmenuQuizzType(name='smenu_quizz-type'))
+        self.sm.add_widget(ShowQuizz(name='show-quizz'))
+
 
         self.sm.current = 'menu'
 

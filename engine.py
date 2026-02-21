@@ -38,13 +38,14 @@ def load_country_data(path = None) -> list[dict]:
 #             print(item["capital"])
 
 
+def get_name(iso):
+    return str(BASEPATH / "name" / f"{iso}.png")
+
 def get_flag(iso):
-    return BASEPATH / "flags" / f"{iso}.png"
-
-
+    return str(BASEPATH / "flags" / f"{iso}.png")
 
 def get_capitals(iso):
-    return BASEPATH / "capitals" / f"{iso}.csv"
+    return str(BASEPATH / "capitals" / f"{iso}.csv")
 
 
 

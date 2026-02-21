@@ -1,8 +1,9 @@
 from pathlib import Path
 from kivy.app import App
-from kivy.graphics import Color, Ellipse
+from kivy.graphics import Color, Ellipse, Rectangle
 from kivy.properties import StringProperty
 from kivy.uix import boxlayout
+from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.image import Image
 
 from kivy.uix.boxlayout import BoxLayout
@@ -16,6 +17,7 @@ from kivy.uix.textinput import TextInput
 
 import engine
 from main import Appli
+from ui import quizz_capitale
 
 """
 THEME
@@ -55,11 +57,9 @@ class DrawLogo(RelativeLayout):
             Color(BLANC)  # Blanc
             self.cercle_fond = Ellipse()
 
-        # 2. L'image du logo
         self.image = Image(source="images/applogo.png")
         self.add_widget(self.image)
 
-        # 3. On lie le redimensionnement
         self.bind(pos=self.update_graphics, size=self.update_graphics)
 
     def update_graphics(self, instance, value):
@@ -72,6 +72,70 @@ class DrawLogo(RelativeLayout):
         )
 
 
+class WhiteLabel(Label):
+    def __init__(self, **kwargs):
+        kwargs.setdefault("color", NOIR)
+        super(WhiteLabel, self).__init__(**kwargs)
+
+        with self.canvas.before:
+            self.background_color = BLANC
+            self.rect = Rectangle()
+
+        self.bind(pos=self.update_graphics, size=self.update_graphics)
+
+
+    def update_graphics(self, instance, value):
+        self.rect.pos = (self.x + 1, self.y + 1)
+        self.rect.size = (self.width - 2 , self.height - 2)
+
+class DrawBoard(BoxLayout): #centralise l'affichage des choxi
+    def __init__(self, **kwargs ):
+        kwargs.setdefault("size_hint_y", None)
+        kwargs.setdefault("height", 75)
+        kwargs.setdefault("padding", 40)
+        kwargs.setdefault("orientation",'horizontal')
+
+        super(DrawBoard, self).__init__(**kwargs)
+
+        #label pseudo
+        #self.label_pseudo = Label(text="", size_hint_y=None, size_hint_x= 1, height=40)
+        self.label_pseudo = WhiteLabel(text="", size_hint_y=None, size_hint_x= 1, height=40)
+        self.add_widget(self.label_pseudo)
+
+        # label mode
+        self.label_mode = WhiteLabel(text="",size_hint_y=None, size_hint_x= 1, height=40)
+        self.add_widget(self.label_mode)
+
+
+        #label continent
+        self.label_continent = WhiteLabel(text="", size_hint_y=None, size_hint_x= 1, height=40)
+        self.add_widget(self.label_continent)
+
+
+        #label type quiz
+        self.label_quiz_type = WhiteLabel(text="", size_hint_y=None, size_hint_x= 1, height=40)
+        self.add_widget(self.label_quiz_type)
+
+
+    def update_labels(self, show_pseudo = False,show_mode = False, show_continent = False, show_type = False, **kwargs):
+        if show_mode:
+            if App.get_running_app().mode == 'mar':
+                self.label_mode.text = 'Mode Marathon'
+            elif App.get_running_app().mode == 'norm':
+                self.label_mode.text = 'Mode Normal'
+
+        if show_pseudo:
+            self.label_pseudo.text = f"Pseudo : {App.get_running_app().pseudo}"
+
+        if show_continent:
+            self.label_continent.text = App.get_running_app().continent
+
+        if show_type:
+            self.label_quiz_type.text = App.get_running_app().type_quizz #c
+
+    def update_rect (self, instance,value):
+        self.rect.pos = self.pos
+        self.rect.size = self.size
 
 class AfficherMenu(BaseScreen):
     def __init__(self, **kwargs):
@@ -83,7 +147,7 @@ class AfficherMenu(BaseScreen):
 
         layout.add_widget(
             Button(
-                text="Play",
+                text="Jouer",
                 color=BLANC,
                 size_hint_y=None,
                 height=60,
@@ -109,10 +173,7 @@ class AfficherMenu(BaseScreen):
 
     def go_submenu_mode(self,instance):         #instance indiqué comme inutilisé mais qd meme necessaire
         #self.app.root.transition = SlideTransition(direction="left")
-        #self.manager.current = 'smenu_mode'
         self.app.root.current = 'smenu_mode' #self.app.root est le scrren manager
-
-
 
 class SubmenuMode(BaseScreen):
     def __init__(self, **kwargs):
@@ -183,9 +244,6 @@ class SubmenuMode(BaseScreen):
     def update_pseudo(self, instance, value):
         self.app.pseudo = self.input_pseudo.text
 
-
-
-
 class SubmenuCont(BaseScreen):
     def __init__(self, **kwargs):
         super(SubmenuCont, self).__init__(**kwargs)
@@ -194,13 +252,8 @@ class SubmenuCont(BaseScreen):
 
         layout.add_widget(DrawLogo())
 
-        self.label_mode = Label(text="",size_hint_y=None, height=40)
-
-        self.label_pseudo = Label(text="", size_hint_y=None, height=30)
-
-        layout.add_widget(self.label_pseudo)
-
-        layout.add_widget(self.label_mode)
+        self.board = DrawBoard()
+        layout.add_widget(self.board)
 
 
         layout.add_widget(
@@ -209,6 +262,7 @@ class SubmenuCont(BaseScreen):
                 color=BLANC,
                 size_hint_y=None,
                 height=60,
+                on_press=lambda x : self.go_next(self, continent= 'Monde')
             )
         )
 
@@ -218,7 +272,7 @@ class SubmenuCont(BaseScreen):
                 color=BLANC,
                 size_hint_y=None,
                 height=60,
-                on_press=App.get_running_app().stop
+                on_press=lambda x : self.go_next(self, continent= 'Afrique')
             )
         )
 
@@ -228,7 +282,7 @@ class SubmenuCont(BaseScreen):
                 color=BLANC,
                 size_hint_y=None,
                 height=60,
-                on_press=App.get_running_app().stop
+                on_press=lambda x : self.go_next(self, continent= 'Amériques')
             )
         )
 
@@ -238,7 +292,7 @@ class SubmenuCont(BaseScreen):
                 color=BLANC,
                 size_hint_y=None,
                 height=60,
-                on_press=App.get_running_app().stop
+                on_press=lambda x : self.go_next(self, continent= 'Asie')
             )
         )
 
@@ -248,9 +302,10 @@ class SubmenuCont(BaseScreen):
                 color=BLANC,
                 size_hint_y=None,
                 height=60,
-                on_press=App.get_running_app().stop
+                on_press=lambda x : self.go_next(self, continent= 'Europe')
             )
         )
+
 
         layout.add_widget(
             Button(
@@ -258,9 +313,11 @@ class SubmenuCont(BaseScreen):
                 color=BLANC,
                 size_hint_y=None,
                 height=60,
-                on_press=App.get_running_app().stop
+                on_press= lambda x : self.go_next(self, continent= 'Océanie')
             )
         )
+
+
 
         layout.add_widget(
             Button(
@@ -276,54 +333,150 @@ class SubmenuCont(BaseScreen):
         self.add_widget(layout)
 
     def on_pre_enter(self):
-        print(self.app.mode)
-        if self.app.mode == 'mar':
-            self.label_mode.text = 'Mode Marathon'
-        elif self.app.mode == 'norm':
-            self.label_mode.text = 'Mode Normal'
-
-        self.label_pseudo.text = f"Pseudo : {self.app.pseudo}"
+        self.board.update_labels(show_pseudo=True, show_mode = True)
 
 
 
+    def go_next(self, instance , continent):
+        self.app.continent = continent
+        self.app.root.current = 'smenu_quizz-type'
 
 
-    def on_press(self):
-        #self.label_mode = self.app.mode
-        ...
 
     def go_back(self, instance):
         self.app.root.current = self.manager.previous()
 
-
-    # def draw_circle(self, instance, value):
-    #     diametre = min(instance.size)
-    #
-    #     # centrer le cercle
-    #     self.cercle_fond.size = (diametre, diametre)
-    #     self.cercle_fond.pos = (
-    #         instance.center_x - diametre / 2,
-    #         instance.center_y - diametre / 2
-    #     )
-
-
-
-
-
-
-def afficher_quizz(self):
+class SubmenuQuizzType(BaseScreen):
     def __init__(self, **kwargs):
-        super(AfficherMenu, self).__init__(**kwargs)
+        super(SubmenuQuizzType, self).__init__(**kwargs)
+        layout = StackLayout(orientation='tb-lr', padding = 20, spacing = 20)
 
-        #va appeler les bonnes fonctions de jeux en fonction de mode et continent
+        layout.add_widget(DrawLogo())
+
+        self.board = DrawBoard()
+        layout.add_widget(self.board)
+
+        layout.add_widget(
+            Button(
+                text="Capitale",
+                color=BLANC,
+                size_hint_y=None,
+                height=60,
+                on_press= lambda x :self.go_next(self, type_quizz= 'Capitale')
+            )
+        )
+
+        layout.add_widget(
+            Button(
+                text="Drapeau",
+                color=BLANC,
+                size_hint_y=None,
+                height=60,
+                on_press= lambda x :self.go_next(self, type_quizz= 'Drapeau')
+            )
+        )
+
+        layout.add_widget(
+            Button(
+                text="Tout",
+                color=BLANC,
+                size_hint_y=None,
+                height=60,
+                on_press= lambda x :self.go_next(self, type_quizz= 'Tout')
+            )
+        )
+
+
+        layout.add_widget(
+            Button(
+                text="Retour",
+                color=BLANC,
+                background_color=TEAL,
+                size_hint_y=None,
+                height=60,
+                on_press= self.go_back
+            )
+        )
 
 
 
-def quizz_capitale(self):
-    ...
 
-def quizz_flag(self):
-    ...
+        self.add_widget(layout)
+
+
+
+    def on_pre_enter(self):
+        self.board.update_labels(show_pseudo=True, show_mode = True, show_continent = True)
+
+
+
+    def go_next(self, instance , type_quizz):
+        self.app.type_quizz = type_quizz
+        self.app.root.current = 'show-quizz'
+
+
+    def go_back(self, instance):
+        self.app.root.current = self.manager.previous()
+
+class ShowQuizz(BaseScreen):
+    def __init__(self, **kwargs):
+        super(ShowQuizz, self).__init__(**kwargs)
+
+        #layout de base
+        #self.flag = None
+        self.type_quizz = None
+        self.layout = StackLayout(orientation='tb-lr', padding = 20, spacing = 20)
+        #self.layout = AnchorLayout(anchor_x='center', anchor_y='center', size_hint_y=(1,None), height=250)
+
+        self.layout.add_widget(DrawLogo())
+
+        self.board = DrawBoard()
+        self.layout.add_widget(self.board)
+
+        self.create_quizz_capitale()
+
+        if self.type_quizz == 'Capitale':
+            self.create_quizz_capitale()
+
+        elif self.type_quizz == 'Drapeau':
+            self.create_quizz_drapeau()
+
+        elif self.type_quizz == 'Tout':
+            ...
+
+
+
+
+
+        self.add_widget(self.layout)
+
+
+        #pop up pour confirmer, quitter la fenetre declenche le jeu
+
+
+    def on_pre_enter(self):
+        self.board.update_labels(show_pseudo=True, show_mode = True, show_continent = True, show_type = True)
+
+
+        self.type_quizz = self.app.type_quizz
+
+
+
+    def create_quizz_capitale(self):
+        layout = BoxLayout(orientation='vertical', size_hint=(1,None), height=200)
+
+        self.country_name_label = Label(text='aa', size_hint_y=None, height=50)
+        self.flag = Image(source=engine.get_flag('AD'),
+                          size_hint=(None, None),
+                          size=(200, 150), pos_hint={'center_x': .5})
+        layout.add_widget(self.country_name_label)
+        layout.add_widget(self.flag)
+        self.layout.add_widget(layout)
+
+        #peut etre un truc genre return true si ce quizz doit etre utilisé et va afficher ou non
+
+    def quizz_flag(self):
+        ...
 
 def afficher_game_over(self):
     ...
