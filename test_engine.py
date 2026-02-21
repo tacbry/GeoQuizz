@@ -14,6 +14,13 @@ def test_charger_country_data_raise_exception(path):
         engine.load_country_data(path)
 
 
+def test_get_name():
+    assert engine.get_name('AD') == 'Andorra'
 
-#un test qui test tous les iso
+def test_get_capital():
+    assert engine.get_capitals('AD') == 'Andorra la Vella'
+
+
+
+#un test qui test tous les iso?
 

@@ -1,9 +1,11 @@
+from kivy.app import App
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.properties import StringProperty
 
+
 from engine import *
-from uikivy import *
+from uikivy import AfficherMenu, SubmenuMode, SubmenuCont, SubmenuQuizzType, ShowQuizz
 
 from kivy.uix.screenmanager import ScreenManager
 
@@ -12,8 +14,6 @@ BASEPATH = Path(__name__).parent
 
 
 #application principale
-
-
 class Appli(App):
     title = "GéoQuizz"
     icon = 'images/applogo.ico'
@@ -24,6 +24,8 @@ class Appli(App):
     continent = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut")
     type_quizz = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut")
 
+    def __init__(self, **kwargs):
+        super().__init__()
 
     def build(self):
         Window.clearcolor = (0.15, 0.15, 0.15, 1)
