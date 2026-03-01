@@ -30,7 +30,7 @@ class Appli(App):
     def build(self):
         Window.clearcolor = (0.15, 0.15, 0.15, 1)
         Window.size = (800, 1000)
-        #Builder.load_file("affichermenu.kv") #ne gere pas path
+        #Builder.load_file("affichermenu.kv") #ne gere pas path, sert à definir les kivy files à utiliser
 
         #gestionnaire d'écrans
         self.sm = ScreenManager()

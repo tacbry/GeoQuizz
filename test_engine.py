@@ -21,6 +21,12 @@ def test_get_capital():
     assert engine.get_capitals('AD') == 'Andorra la Vella'
 
 
+@pytest.mark.parametrize(
+    "continent",["America"])
+def test_get_filtered_countries(continent):
+    ...
+
 
 #un test qui test tous les iso?
+
 

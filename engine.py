@@ -8,6 +8,9 @@ from kivy.storage.jsonstore import JsonStore
 """
 CONSTANTES
 """
+
+#Fonctions utilitaires :
+
 BASEPATH = Path(__name__).parent #permet l'utilisation sur tous les systeme
 
 def load_country_data(path = None) -> list[dict]:
@@ -31,13 +34,13 @@ def load_country_data(path = None) -> list[dict]:
             country_data = json.load(f)
         raise FileNotFoundError("aucun fichier trouvé/utilisation du fichier par défaut")
 
+    for item in country_data:
+        if item["continents"].lower() == "north america" or item["continents"].lower() == "south america":
+            item["continents"] = "America"
+
     return country_data
 
-# def get_country_data(path = None) -> dict:
-#     data = load_country_data()
-#     for item in data.items():
-#         if item["name"] == "Albania":
-#             print(item["capital"])
+
 
 
 def load_iso(continent = 'Monde'):
@@ -63,6 +66,12 @@ def get_capitals(iso):
             return item["capital"]
     return None
 
+#Fonctions de jeu :
+
+
+def play_game():
+    ...
+
 def play_capitals(iso):
     #affiche une question (sera bouclée dans une fonction de jeu plus générale qui choisira d'afficher question capitale, flag ou les deux)
     print("QUIZZ CAPITALE")
@@ -79,3 +88,7 @@ def play_capitals(iso):
             print("mauvaise réponse, réessayez")
 
 
+def get_filtered_countries(continent, all_data):
+    if continent == "Monde":
+        return all_data
+    return [c for c in all_data if c["continent"] == continent]

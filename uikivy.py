@@ -1,4 +1,6 @@
 from pathlib import Path
+import random
+
 from kivy.app import App
 from kivy.graphics import Color, Ellipse, Rectangle
 from kivy.properties import StringProperty
@@ -14,6 +16,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
 from kivy.uix.slider import Slider
 from kivy.uix.stacklayout import StackLayout
 from kivy.uix.textinput import TextInput
+
 
 import engine
 
@@ -415,21 +418,128 @@ class SubmenuQuizzType(BaseScreen):
     def go_back(self, instance):
         self.app.root.current = self.manager.previous()
 
+# class ShowQuizz(BaseScreen):
+#     def __init__(self, **kwargs):
+#         super(ShowQuizz, self).__init__(**kwargs)
+#
+#         #layout de base
+#         #self.flag = None
+#         self.answer = None
+#         self.input_answer = None
+#         self.flag = None
+#         self.country_name_label = None
+#         self.type_quizz = None
+#
+#         self.layout = StackLayout(orientation='tb-lr', padding = 20, spacing = 20)
+#         #self.layout = AnchorLayout(anchor_x='center', anchor_y='center', size_hint_y=(1,None), height=250)
+#
+#         self.layout.add_widget(Button(
+#             text="Home",
+#             color=BLANC,
+#             background_color=TEAL,
+#             size_hint_y=None,
+#             height=60,
+#             on_press=self.go_home
+#         ))
+#
+#         self.layout.add_widget(DrawLogo())
+#
+#         self.board = DrawBoard()
+#         self.layout.add_widget(self.board)
+#
+#         self.create_quizz_capitale()
+#         print(self.type_quizz)
+#         if self.type_quizz == 'Capitale':
+#             self.create_quizz_capitale()
+#
+#         elif self.type_quizz == 'Drapeau':
+#             self.score +=1
+#             self.create_quizz_drapeau()
+#
+#         elif self.type_quizz == 'Tout':
+#             ...
+#
+#
+#
+#
+#
+#         self.add_widget(self.layout)
+#
+#
+#         #pop up pour confirmer, quitter la fenetre declenche le jeu
+#
+#
+#     def on_pre_enter(self):
+#         self.board.update_labels(show_pseudo=True, show_mode = True, show_continent = True, show_type = True)
+#         self.type_quizz = self.app.type_quizz
+#
+#     def go_home(self, instance):
+#         self.app.root.current = 'menu'
+#
+#
+#
+#     def create_quizz_capitale(self):
+#         layout = BoxLayout(orientation='vertical', size_hint=(1,None), height=400)
+#
+#         self.country_name_label = Label(text=engine.get_name('AD'), size_hint_y=None, height=50)
+#         layout.add_widget(self.country_name_label)
+#         self.flag = Image(source=engine.get_flag('AD'),
+#                           size_hint=(None, None),
+#                           size=(200, 150), pos_hint={'center_x': .5})
+#         layout.add_widget(self.flag)
+#
+#         answer_layout = BoxLayout(orientation='horizontal', size_hint=(1,None), height=200)
+#
+#         self.input_answer = TextInput(text="", multiline=False, size_hint_y=None, height=30, on_text_validate=self.validate)
+#
+#         answer_layout.add_widget(self.input_answer)
+#
+#         answer_layout.add_widget(Button(
+#             text="Valider",
+#             color=BLANC,
+#             background_color=TEAL,
+#             size_hint_y=None,
+#             height=60,
+#             on_press=self.validate)
+#         )
+#
+#         layout.add_widget(answer_layout)
+#
+#
+#
+#         # layout.add_widget(Button(
+#         #     text="Retour",
+#         #     color=BLANC,
+#         #     background_color=TEAL,
+#         #     size_hint_y=None,
+#         #     height=60,
+#         #     on_press=self.validate())
+#         # )
+#
+#         self.layout.add_widget(layout)
+#
+#     def validate(self, instance):
+#         self.answer = str(self.input_answer.text)
+#         engine.play_capitals('AD')
+#         print(self.answer)
+#
+#     def create_quizz_flag(self):
+#         ...
+
+##################
+
+
 class ShowQuizz(BaseScreen):
     def __init__(self, **kwargs):
         super(ShowQuizz, self).__init__(**kwargs)
 
-        #layout de base
-        #self.flag = None
         self.answer = None
-        self.input_answer = None
-        self.flag = None
         self.country_name_label = None
-        self.type_quizz = None
+        self.current_country = None
+        self.data_quizz = []
 
+        #UI fixe
         self.layout = StackLayout(orientation='tb-lr', padding = 20, spacing = 20)
-        #self.layout = AnchorLayout(anchor_x='center', anchor_y='center', size_hint_y=(1,None), height=250)
-
         self.layout.add_widget(Button(
             text="Home",
             color=BLANC,
@@ -439,18 +549,50 @@ class ShowQuizz(BaseScreen):
             on_press=self.go_home
         ))
 
-        self.layout.add_widget(DrawLogo())
-
+        self.add_widget(DrawLogo())
         self.board = DrawBoard()
         self.layout.add_widget(self.board)
 
-        self.create_quizz_capitale()
-        print(self.type_quizz)
-        if self.type_quizz == 'Capitale':
-            self.create_quizz_capitale()
 
-        elif self.type_quizz == 'Drapeau':
-            self.create_quizz_drapeau()
+        #UI dynamique
+        self.question_label = Label(text="", size_hint_y=None, height=50)
+        self.flag = Image(source="", size_hint=(None,None), size=(200, 150), pos_hint={'center_x': .5})
+        self.input_answer = TextInput(text="", multiline=False, size_hint_y=None, height=30)
+
+        btn_validate = Button(text="Valider",size_hint_y=None, height=30, on_press=self.validate)
+
+        #adlayout
+        self.layout.add_widget(self.question_label)
+        self.layout.add_widget(self.flag)
+        self.layout.add_widget(self.input_answer)
+        self.layout.add_widget(btn_validate)
+        self.add_widget(self.layout)
+
+
+    def on_pre_enter(self):
+        self.board.update_labels(show_pseudo=True, show_mode=True, show_continent=True, show_type=True)
+        self.type_quizz = self.app.type_quizz
+        all_data = engine.load_country_data()
+        self.data_quizz = engine.get_filtered_countries(self.app.continent, all_data)
+        random.shuffle(self.data_quizz)
+
+        self.next_question()
+
+
+    def next_question(self):
+        if not self.data_quizz:
+            print("fin")
+
+        self.current_country = self.data_quizz.pop()
+        self.input_answer.text = ""
+
+        self.layout.clear_widgets()
+
+        if self.app.type_quizz == 'Capitale':
+            self.create_quizz_capitale(self.current_country["code"])
+
+        elif self.app.type_quizz == 'Drapeau':
+            self.create_quizz_flag()
 
         elif self.type_quizz == 'Tout':
             ...
@@ -458,28 +600,17 @@ class ShowQuizz(BaseScreen):
 
 
 
-
-        self.add_widget(self.layout)
-
-
-        #pop up pour confirmer, quitter la fenetre declenche le jeu
-
-
-    def on_pre_enter(self):
-        self.board.update_labels(show_pseudo=True, show_mode = True, show_continent = True, show_type = True)
-        self.type_quizz = self.app.type_quizz
-
     def go_home(self, instance):
         self.app.root.current = 'menu'
 
 
 
-    def create_quizz_capitale(self):
+    def create_quizz_capitale(self, iso):
         layout = BoxLayout(orientation='vertical', size_hint=(1,None), height=400)
 
-        self.country_name_label = Label(text=engine.get_name('AD'), size_hint_y=None, height=50)
+        self.country_name_label = Label(text=engine.get_name(iso), size_hint_y=None, height=50)
         layout.add_widget(self.country_name_label)
-        self.flag = Image(source=engine.get_flag('AD'),
+        self.flag = Image(source=engine.get_flag(iso),
                           size_hint=(None, None),
                           size=(200, 150), pos_hint={'center_x': .5})
         layout.add_widget(self.flag)
@@ -488,11 +619,7 @@ class ShowQuizz(BaseScreen):
 
         self.input_answer = TextInput(text="", multiline=False, size_hint_y=None, height=30, on_text_validate=self.validate)
 
-
         answer_layout.add_widget(self.input_answer)
-
-
-
 
         answer_layout.add_widget(Button(
             text="Valider",
@@ -506,38 +633,27 @@ class ShowQuizz(BaseScreen):
         layout.add_widget(answer_layout)
 
 
-
-        # layout.add_widget(Button(
-        #     text="Retour",
-        #     color=BLANC,
-        #     background_color=TEAL,
-        #     size_hint_y=None,
-        #     height=60,
-        #     on_press=self.validate())
-        # )
-
         self.layout.add_widget(layout)
+
+    def create_quizz_flag(self):
+        ...
 
     def validate(self, instance):
         self.answer = str(self.input_answer.text)
-        engine.play_capitals('AD')
-        print(self.answer)
+        self.next_question()
+
+        #if self.answer est la bonne reponse
 
 
 
 
 
-
-
-    def quizz_flag(self):
-        ...
-
+# #adapter en class
 def afficher_game_over(self):
     ...
 
 def afficher_leaderboard(self):
     ...
 
-def main():
-    ...
+
 
