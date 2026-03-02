@@ -1,10 +1,11 @@
 from kivy.app import App
 from kivy.core.window import Window
-from kivy.lang import Builder
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, NumericProperty
 
+import engine
+from pathlib import Path
 
-from engine import *
+import uikivy
 from uikivy import AfficherMenu, SubmenuMode, SubmenuCont, SubmenuQuizzType, ShowQuizz
 
 from kivy.uix.screenmanager import ScreenManager
@@ -18,14 +19,18 @@ class Appli(App):
     title = "GéoQuizz"
     icon = 'images/applogo.ico'
 
+
+
     #variables partagées
     pseudo  =StringProperty("Player 1")
     mode = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut")
     continent = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut")
     type_quizz = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut")
-
+    score = NumericProperty(0)
     def __init__(self, **kwargs):
         super().__init__()
+        self.engine = engine
+        self.ui = uikivy
 
     def build(self):
         Window.clearcolor = (0.15, 0.15, 0.15, 1)
@@ -44,10 +49,6 @@ class Appli(App):
         self.sm.current = 'menu'
 
         return self.sm
-
-
-
-
 
 #démarrage
 if __name__ == "__main__":

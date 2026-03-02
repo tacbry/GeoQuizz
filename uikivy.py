@@ -272,7 +272,7 @@ class SubmenuCont(BaseScreen):
                 color=BLANC,
                 size_hint_y=None,
                 height=60,
-                on_press=lambda x : self.go_next(self, continent= 'Afrique')
+                on_press=lambda x : self.go_next(self, continent= 'Africa')
             )
         )
 
@@ -282,7 +282,7 @@ class SubmenuCont(BaseScreen):
                 color=BLANC,
                 size_hint_y=None,
                 height=60,
-                on_press=lambda x : self.go_next(self, continent= 'Amériques')
+                on_press=lambda x : self.go_next(self, continent= 'America')
             )
         )
 
@@ -292,7 +292,7 @@ class SubmenuCont(BaseScreen):
                 color=BLANC,
                 size_hint_y=None,
                 height=60,
-                on_press=lambda x : self.go_next(self, continent= 'Asie')
+                on_press=lambda x : self.go_next(self, continent= 'Asia')
             )
         )
 
@@ -313,7 +313,7 @@ class SubmenuCont(BaseScreen):
                 color=BLANC,
                 size_hint_y=None,
                 height=60,
-                on_press= lambda x : self.go_next(self, continent= 'Océanie')
+                on_press= lambda x : self.go_next(self, continent= 'Oceania')
             )
         )
 
@@ -561,7 +561,7 @@ class ShowQuizz(BaseScreen):
 
         btn_validate = Button(text="Valider",size_hint_y=None, height=30, on_press=self.validate)
 
-        #adlayout
+        #addlayout
         self.layout.add_widget(self.question_label)
         self.layout.add_widget(self.flag)
         self.layout.add_widget(self.input_answer)
@@ -639,8 +639,18 @@ class ShowQuizz(BaseScreen):
         ...
 
     def validate(self, instance):
-        self.answer = str(self.input_answer.text)
-        self.next_question()
+
+        if play_game():
+
+
+        self.answer = self.input_answer.text
+
+
+
+        if self.current_country["capital"].lower() == self.answer.lower():
+            self.next_question()
+        else:
+            self.go_home(self)
 
         #if self.answer est la bonne reponse
 
