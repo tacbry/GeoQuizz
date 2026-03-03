@@ -4,6 +4,7 @@ from pathlib import Path
 import json
 import pickle
 
+from kivy.app import App
 from kivy.storage.jsonstore import JsonStore
 
 """
@@ -19,9 +20,13 @@ class Engine :
         self.iso = None
 
 
-    def load_country_data(path = None) -> list[dict]:
-        def __init__(self, **kwargs):
-            ...
+    @property
+    def app(self):
+        return App.get_running_app()
+
+
+    def load_country_data(self, path = None) -> list[dict]:
+
         if path is None:
             path = BASEPATH / "countries.json"
         else:
@@ -50,26 +55,26 @@ class Engine :
 
 
 
-    def load_iso(continent = 'Monde'):
+    def load_iso(self, continent = 'Monde'):
         def __init__(self, **kwargs):
             ...
         #la fonction de jeu chargera tous les iso puis choisira un au hasard qui sera renseigné aux fonction sd'affichage
         data = self.load_country_data()
         ...
 
-    def get_name(iso):
-        data = load_country_data()
+    def get_name(self, iso):
+        data = self.app.engine.load_country_data()
         for item in data:
             if item["code"] == iso:
                 return  item["name"]
         return None
 
 
-    def get_flag(iso):
+    def get_flag(self, iso):
         return str(BASEPATH / "flags" / f"{iso}.png")
 
-    def get_capitals(iso):
-        data = load_country_data()
+    def get_capitals(self, iso):
+        data = self.app.engine.load_country_data()
         for item in data:
             if item["code"] == iso:
                 return item["capital"]
@@ -88,11 +93,11 @@ class Engine :
             self.engine.play_flags(iso, answer)
         elif type_quizz == 'Tout':
             rand_value = random.randint(1,2)
-            self.engine.play_capitals(iso, answer) if rand_value == 1 else play_flags(iso, answer)
+            self.engine.play_capitals(iso, answer) if rand_value == 1 else self.app.engine.play_flags(iso, answer)
 
-    def play_capitals(iso, answer):
+    def play_capitals(self,iso, answer):
         #affiche une question (sera bouclée dans une fonction de jeu plus générale qui choisira d'afficher question capitale, flag ou les deux)
-        country_capital = get_capitals(iso)
+        country_capital = self.app.engine.get_capitals(iso)
         return True if answer.lower() == country_capital.lower() else False
 
 
@@ -100,7 +105,7 @@ class Engine :
     def play_flags(iso, answer):
         pass
 
-    def get_filtered_countries(continent, all_data):
+    def get_filtered_countries(self, continent, all_data):
         if continent == "Monde":
             return all_data
         return [c for c in all_data if c["continents"] == continent]

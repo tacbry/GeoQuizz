@@ -10,6 +10,9 @@ from uikivy import AfficherMenu, SubmenuMode, SubmenuCont, SubmenuQuizzType, Sho
 
 from kivy.uix.screenmanager import ScreenManager
 
+from engine import Engine
+from uikivy import BaseScreen
+
 
 BASEPATH = Path(__name__).parent
 
@@ -29,8 +32,8 @@ class Appli(App):
     score = NumericProperty(0)
     def __init__(self, **kwargs):
         super().__init__()
-        self.engine = engine
-        self.ui = uikivy
+        self.engine = Engine()
+        self.ui = BaseScreen()
 
     def build(self):
         Window.clearcolor = (0.15, 0.15, 0.15, 1)
