@@ -17,6 +17,9 @@ from kivy.uix.slider import Slider
 from kivy.uix.stacklayout import StackLayout
 from kivy.uix.textinput import TextInput
 
+
+import engine
+
 """
 THEME
 """
@@ -569,8 +572,8 @@ class ShowQuizz(BaseScreen):
     def on_pre_enter(self):
         self.board.update_labels(show_pseudo=True, show_mode=True, show_continent=True, show_type=True)
         self.type_quizz = self.app.type_quizz
-        all_data = self.app.engine.load_country_data()
-        self.data_quizz = self.app.engine.get_filtered_countries(self.app.continent, all_data)
+        all_data = engine.load_country_data()
+        self.data_quizz = engine.get_filtered_countries(self.app.continent, all_data)
         random.shuffle(self.data_quizz)
 
         self.next_question()
@@ -605,9 +608,9 @@ class ShowQuizz(BaseScreen):
     def create_quizz_capitale(self, iso):
         layout = BoxLayout(orientation='vertical', size_hint=(1,None), height=400)
 
-        self.country_name_label = Label(text=self.app.engine.get_name(iso), size_hint_y=None, height=50)
+        self.country_name_label = Label(text=engine.get_name(iso), size_hint_y=None, height=50)
         layout.add_widget(self.country_name_label)
-        self.flag = Image(source=self.app.engine.get_flag_path(iso),
+        self.flag = Image(source=engine.get_flag(iso),
                           size_hint=(None, None),
                           size=(200, 150), pos_hint={'center_x': .5})
         layout.add_widget(self.flag)
@@ -637,10 +640,10 @@ class ShowQuizz(BaseScreen):
 
     def validate(self, instance):
 
-        #if self.app.engine.play_game():
+        if play_game():
 
 
-        #self.answer = self.input_answer.text
+        self.answer = self.input_answer.text
 
 
 

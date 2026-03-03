@@ -13,14 +13,15 @@ CONSTANTES
 #Fonctions utilitaires :
 
 BASEPATH = Path(__name__).parent #permet l'utilisation sur tous les systeme
-
 class Engine :
     def __init__(self):
         super().__init__()
         self.iso = None
 
 
-    def load_country_data(self,path = None) -> list[dict]:
+    def load_country_data(path = None) -> list[dict]:
+        def __init__(self, **kwargs):
+            ...
         if path is None:
             path = BASEPATH / "countries.json"
         else:
@@ -32,9 +33,8 @@ class Engine :
             else:
                 path = path
 
-            with path.open(encoding='utf-8') as f:
+            with open(path, 'r', encoding='utf-8') as f:
                 country_data = json.load(f)
-
         except FileNotFoundError:
             path = BASEPATH / "countries.json" #si pas de fichier trouvé, on force le fichier présent de base
             with open(path, 'r', encoding='utf-8') as f:
@@ -49,19 +49,27 @@ class Engine :
 
 
 
-    def get_name(self, iso):
+
+    def load_iso(continent = 'Monde'):
+        def __init__(self, **kwargs):
+            ...
+        #la fonction de jeu chargera tous les iso puis choisira un au hasard qui sera renseigné aux fonction sd'affichage
         data = self.load_country_data()
+        ...
+
+    def get_name(iso):
+        data = load_country_data()
         for item in data:
             if item["code"] == iso:
                 return  item["name"]
         return None
 
 
-    def get_flag_path(self, iso):
+    def get_flag(iso):
         return str(BASEPATH / "flags" / f"{iso}.png")
 
-    def get_capitals(self, iso):
-        data = self.load_country_data()
+    def get_capitals(iso):
+        data = load_country_data()
         for item in data:
             if item["code"] == iso:
                 return item["capital"]
@@ -69,27 +77,30 @@ class Engine :
 
     #Fonctions de jeu :
 
+
+
+
+
     def play_game(self,type_quizz,iso, answer): #dispatcher de mode de jeu
         if type_quizz == 'Capitale':
-            return self.play_capitals(iso, answer)
+            return self.engine.play_capitals(iso, answer)
         elif type_quizz == 'Drapeau':
-            self.play_flags(iso, answer)
+            self.engine.play_flags(iso, answer)
         elif type_quizz == 'Tout':
             rand_value = random.randint(1,2)
-            self.play_capitals(iso, answer) if rand_value == 1 else self.play_flags(iso, answer)
-        return None
+            self.engine.play_capitals(iso, answer) if rand_value == 1 else play_flags(iso, answer)
 
-    def play_capitals(self, iso, answer):
+    def play_capitals(iso, answer):
         #affiche une question (sera bouclée dans une fonction de jeu plus générale qui choisira d'afficher question capitale, flag ou les deux)
-        country_capital = self.get_capitals(iso)
+        country_capital = get_capitals(iso)
         return True if answer.lower() == country_capital.lower() else False
 
 
 
-    def play_flags(self, iso, answer):
+    def play_flags(iso, answer):
         pass
 
-    def get_filtered_countries(self, continent, all_data):
+    def get_filtered_countries(continent, all_data):
         if continent == "Monde":
             return all_data
         return [c for c in all_data if c["continents"] == continent]
