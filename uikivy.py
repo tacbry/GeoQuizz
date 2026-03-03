@@ -637,18 +637,17 @@ class ShowQuizz(BaseScreen):
 
     def validate(self, instance):
 
-        if self.app.engine.play_game():
-            ...
+        if self.app.engine.check_answer(type_quizz=self.app.type_quizz, iso= self.current_country["code"], answer=self.input_answer.text):
+            print("bonne reponse")
+            print(f"{self.app.engine.score} points")
+            self.next_question()
+        else:
+            self.go_home(self)
+            self.app.engine.do_reset()
 
 
         #self.answer = self.input_answer.text
 
-
-
-        if self.current_country["capital"].lower() == self.answer.lower():
-            self.next_question()
-        else:
-            self.go_home(self)
 
         #if self.answer est la bonne reponse
 

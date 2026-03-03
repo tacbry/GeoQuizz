@@ -18,6 +18,7 @@ class Engine :
     def __init__(self):
         super().__init__()
         self.iso = None
+        self.score = 0
 
 
     @property
@@ -86,23 +87,31 @@ class Engine :
 
 
 
-    def play_game(self,type_quizz,iso, answer): #dispatcher de mode de jeu
+    def check_answer(self, type_quizz, iso, answer): #dispatcher de mode de jeu
         if type_quizz == 'Capitale':
-            return self.engine.play_capitals(iso, answer)
+            return self.app.engine.check_capital(iso, answer)
         elif type_quizz == 'Drapeau':
-            self.engine.play_flags(iso, answer)
+            self.app.engine.check_flags(iso, answer)
         elif type_quizz == 'Tout':
             rand_value = random.randint(1,2)
-            self.engine.play_capitals(iso, answer) if rand_value == 1 else self.app.engine.play_flags(iso, answer)
+            self.app.engine.check_capital(iso, answer) if rand_value == 1 else self.app.engine.check_flags(iso, answer)
 
-    def play_capitals(self,iso, answer):
+    def check_capital(self, iso, answer):
         #affiche une question (sera bouclée dans une fonction de jeu plus générale qui choisira d'afficher question capitale, flag ou les deux)
         country_capital = self.app.engine.get_capitals(iso)
-        return True if answer.lower() == country_capital.lower() else False
+        if answer.lower() == country_capital.lower() :
+            self.score += 1
+            return True
+        else :
+            return False
+
+
+    def do_reset(self):
+        self.score = 0
 
 
 
-    def play_flags(iso, answer):
+    def check_flags(self, iso, answer):
         pass
 
     def get_filtered_countries(self, continent, all_data):

@@ -25,8 +25,10 @@ def test_get_capital():
     "continent",["America"])
 def test_get_filtered_countries(continent):
     ...
+def test_check_capital_return_true_if_good_answer():
+    ...
+def test_check_answer_return_true_if_good_answer():
+    ...#tester des flag et capitale
 
-
-#un test qui test tous les iso?
 
 
