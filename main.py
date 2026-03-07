@@ -6,7 +6,7 @@ import engine
 from pathlib import Path
 
 import uikivy
-from uikivy import AfficherMenu, SubmenuMode, SubmenuCont, SubmenuQuizzType, ShowQuizz
+from uikivy import AfficherMenu, SubmenuMode, SubmenuCont, SubmenuQuizzType, ShowQuizz, ShowLeaderboard, ShowGameOver
 
 from kivy.uix.screenmanager import ScreenManager
 
@@ -37,7 +37,7 @@ class Appli(App):
 
     def build(self):
         Window.clearcolor = (0.15, 0.15, 0.15, 1)
-        Window.size = (800, 1000)
+        Window.size = (800, 800)
         #Builder.load_file("affichermenu.kv") #ne gere pas path, sert à definir les kivy files à utiliser
 
         #gestionnaire d'écrans
@@ -47,6 +47,8 @@ class Appli(App):
         self.sm.add_widget(SubmenuCont(name='smenu_cont'))
         self.sm.add_widget(SubmenuQuizzType(name='smenu_quizz-type'))
         self.sm.add_widget(ShowQuizz(name='show-quizz'))
+        self.sm.add_widget(ShowGameOver(name='show-go'))
+        self.sm.add_widget(ShowLeaderboard(name='show-lb'))
 
 
         self.sm.current = 'menu'
