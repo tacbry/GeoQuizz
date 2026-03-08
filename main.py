@@ -2,11 +2,11 @@ from kivy.app import App
 from kivy.core.window import Window
 from kivy.properties import StringProperty, NumericProperty
 
-import engine
+
 from pathlib import Path
 
-import uikivy
-from uikivy import AfficherMenu, SubmenuMode, SubmenuCont, SubmenuQuizzType, ShowQuizz, ShowLeaderboard, ShowGameOver
+
+from uikivy import AfficherMenu, SubmenuMode, SubmenuCont, SubmenuQuizzType, ShowQuizz, ShowLeaderboard#, ShowGameOver
 
 from kivy.uix.screenmanager import ScreenManager
 
@@ -26,9 +26,9 @@ class Appli(App):
 
     #variables partagées
     pseudo  =StringProperty("Player 1")
-    mode = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut")
+    mode = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut")#marathon / par defaut
     continent = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut")
-    type_quizz = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut")
+    type_quizz = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut") #capitale/flag/tout
     score = NumericProperty(0)
     def __init__(self, **kwargs):
         super().__init__()
@@ -47,7 +47,7 @@ class Appli(App):
         self.sm.add_widget(SubmenuCont(name='smenu_cont'))
         self.sm.add_widget(SubmenuQuizzType(name='smenu_quizz-type'))
         self.sm.add_widget(ShowQuizz(name='show-quizz'))
-        self.sm.add_widget(ShowGameOver(name='show-go'))
+        #self.sm.add_widget(ShowGameOver(name='show-go'))
         self.sm.add_widget(ShowLeaderboard(name='show-lb'))
 
 

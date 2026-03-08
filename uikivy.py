@@ -3,9 +3,6 @@ import random
 
 from kivy.app import App
 from kivy.graphics import Color, Ellipse, Rectangle
-from kivy.properties import StringProperty
-from kivy.uix import boxlayout
-from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.image import Image
 
 from kivy.uix.boxlayout import BoxLayout
@@ -13,7 +10,6 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
-from kivy.uix.slider import Slider
 from kivy.uix.stacklayout import StackLayout
 from kivy.uix.textinput import TextInput
 
@@ -37,6 +33,7 @@ def label_theme(text, **kwargs):
 CONSTANTES
 """
 BASEPATH = Path(__name__).parent #permet l'utilisation sur tous les systemes
+GOALSCORE = 15
 """"""
 
 class BaseScreen(Screen): #semble être la méthode la plus appropriée pour gerer le passage de variable. De plus la génération auto a directmeent compris
@@ -128,7 +125,7 @@ class DrawBoard(BoxLayout): #centralise l'affichage des choxi
             self.label_continent.text = App.get_running_app().continent
 
         if show_type:
-            self.label_quiz_type.text = App.get_running_app().type_quizz #c
+            self.label_quiz_type.text = App.get_running_app().type_quizz
 
     def update_rect (self, instance,value):
         self.rect.pos = self.pos
@@ -153,6 +150,17 @@ class AfficherMenu(BaseScreen):
             )
         )
 
+        layout.add_widget(
+            Button(
+                text="Hall of fame",
+                color=BLANC,
+                size_hint_y=None,
+                height=60,
+                padding=50,
+                on_press=self.go_leaderboard,
+            )
+        )
+
 
         layout.add_widget(
             Button(
@@ -171,6 +179,9 @@ class AfficherMenu(BaseScreen):
     def go_submenu_mode(self,instance):         #instance indiqué comme inutilisé mais qd meme necessaire
         #self.app.root.transition = SlideTransition(direction="left")
         self.app.root.current = 'smenu_mode' #self.app.root est le scrren manager
+
+    def go_leaderboard(self, instance):
+        self.app.root.current = 'show-lb'
 
 class SubmenuMode(BaseScreen):
     def __init__(self, **kwargs):
@@ -201,7 +212,7 @@ class SubmenuMode(BaseScreen):
 
         layout.add_widget(
             Button(
-                text="Normal",
+                text="Par défaut",
                 color=BLANC,
                 size_hint_y=None,
                 height=60,
@@ -444,14 +455,25 @@ class ShowQuizz(BaseScreen):
         print(self.data_size)
         random.shuffle(self.data_quizz)
 
+        if self.app.mode == 'mar':
+            self.goal_score = self.data_size
+        elif self.app.mode == 'norm':
+            self.goal_score = GOALSCORE
+
         self.next_question()
 
 
     def next_question(self):
-        if not self.data_quizz:
-            print("fin")
+        # if self.app.engine.score == self.goal_score:
+        #     print("fin")
+        #
+        #     return
 
+        if self.app.engine.is_endgame():
+            print("fin")
+            self.game_over()
             return
+
 
         self.current_country = self.data_quizz.pop()
 
@@ -460,14 +482,14 @@ class ShowQuizz(BaseScreen):
         if self.app.mode == 'mar':
             self.goal_score = self.data_size
         else:
-            self.goal_score = 15#todo modifier pour permettre de changer dans les parametres
+            self.goal_score = GOALSCORE
 
         if self.app.type_quizz == 'Capitale':
             self.create_quizz_capitale(self.current_country["code"])
 
 
         elif self.app.type_quizz == 'Drapeau':
-            self.create_quizz_flag()
+            self.create_quizz_flag(self.current_country["code"])
 
         elif self.type_quizz == 'Tout':
             ...
@@ -491,9 +513,9 @@ class ShowQuizz(BaseScreen):
                           size=(200, 150), pos_hint={'center_x': .5})
         layout.add_widget(self.flag)
 
-        answer_layout = BoxLayout(orientation='horizontal', size_hint=(1,None), height=200)
+        answer_layout = BoxLayout(orientation='horizontal', size_hint=(1,None), height=200, padding=10, spacing=10)
 
-        self.input_answer = TextInput(text="", multiline=False, size_hint_y=None, height=30, on_text_validate=self.validate)
+        self.input_answer = TextInput(text="", multiline=False, size_hint_y=None, height=50, on_text_validate=self.validate)
 
         answer_layout.add_widget(self.input_answer)
 
@@ -502,7 +524,7 @@ class ShowQuizz(BaseScreen):
             color=BLANC,
             background_color=TEAL,
             size_hint_y=None,
-            height=60,
+            height=50,
             on_press=self.validate)
         )
 
@@ -511,7 +533,7 @@ class ShowQuizz(BaseScreen):
 
         self.question_layout.add_widget(layout)
 
-    def create_quizz_flag(self):
+    def create_quizz_flag(self, iso):
         ...
 
     def validate(self, instance):
@@ -521,19 +543,30 @@ class ShowQuizz(BaseScreen):
             print(f"{self.app.engine.score} points")
             self.next_question()
         else:
-            self.go_home(self)
+            self.go_home(self) #todo gerer les erreur
             self.app.engine.do_reset()
+
+
+    def game_over(self, instance):
+        self.app.root.current = 'menu'
 
 
 
 
 
 # #adapter en class
-class ShowGameOver(BaseScreen):
-    ...
+#class ShowGameOver(BaseScreen):
+
+
+
 
 class ShowLeaderboard(BaseScreen):
-    ...
+    def __init__(self, **kwargs):
+        super(ShowLeaderboard, self).__init__(**kwargs)
+
+    def on_pre_enter(self):
+        #charger le fichier
+        ...
 
 
 

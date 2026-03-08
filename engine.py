@@ -1,11 +1,11 @@
 import random
-from typing import List
+
 from pathlib import Path
 import json
 import pickle
 
 from kivy.app import App
-from kivy.storage.jsonstore import JsonStore
+
 
 """
 CONSTANTES
@@ -92,7 +92,7 @@ class Engine :
             return self.app.engine.check_capital(iso, answer)
         elif type_quizz == 'Drapeau':
             self.app.engine.check_flags(iso, answer)
-        elif type_quizz == 'Tout':
+        elif type_quizz == 'Tout': #pas ici que le choix doit se faire, la logique de verification se fait as comme ca
             rand_value = random.randint(1,2)
             self.app.engine.check_capital(iso, answer) if rand_value == 1 else self.app.engine.check_flags(iso, answer)
 
@@ -118,3 +118,33 @@ class Engine :
         if continent == "Monde":
             return all_data
         return [c for c in all_data if c["continents"] == continent]
+
+
+    def save_score(self):
+        ...#todo sauver pseudo, score et mode de jeu + type pour permettre d'afficher au bon endroit
+
+    def load_score(self):
+        ... #todo ajouter tri des données pour donner les 10 meilleurs
+
+    def is_endgame(self):
+        if self.app.type_quizz == "mar" :
+            if self.app.engine.score == self.app.ui.goal_score:
+                print("fin")
+                return True
+            elif not self.app.ui.data_quizz:
+                ...
+
+            else:
+                return False
+
+        elif self.app.type_quizz == "norm":
+            if self.app.engine.score == self.app.ui.goal_score:
+                print("fin")
+                return True
+            else:
+                return False
+
+        return None
+
+
+
