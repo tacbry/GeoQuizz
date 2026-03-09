@@ -6,6 +6,7 @@ import pickle
 
 from kivy.app import App
 
+from uikivy import GOALSCORE
 
 """
 CONSTANTES
@@ -17,16 +18,18 @@ BASEPATH = Path(__name__).parent #permet l'utilisation sur tous les systeme
 class Engine :
     def __init__(self):
         super().__init__()
+        self.data_size = None
         self.iso = None
         self.score = 0
+        self.lives = 3
 
 
     @property
     def app(self):
         return App.get_running_app()
 
-
-    def load_country_data(self, path = None) -> list[dict]:
+    @staticmethod
+    def load_country_data(path = None) -> list[dict]:
 
         if path is None:
             path = BASEPATH / "countries.json"
@@ -70,8 +73,8 @@ class Engine :
                 return  item["name"]
         return None
 
-
-    def get_flag(self, iso):
+    @staticmethod
+    def get_flag(iso):
         return str(BASEPATH / "flags" / f"{iso}.png")
 
     def get_capitals(self, iso):
@@ -102,12 +105,17 @@ class Engine :
         if answer.lower() == country_capital.lower() :
             self.score += 1
             return True
+        elif answer.lower() == 'debug':
+            self.score += 1
+            return True
         else :
+            self.lives -=1
             return False
 
 
     def do_reset(self):
         self.score = 0
+        self.lives = 3
 
 
 
@@ -120,31 +128,45 @@ class Engine :
         return [c for c in all_data if c["continents"] == continent]
 
 
-    def save_score(self):
+    def save_score(self, pseudo, score, mode, type_quizz):
         ...#todo sauver pseudo, score et mode de jeu + type pour permettre d'afficher au bon endroit
 
-    def load_score(self):
+    def load_score(self, mode, type_quizz):
         ... #todo ajouter tri des données pour donner les 10 meilleurs
 
+    def create_game_data(self):
+        all_data = self.load_country_data()
+        data_quizz = self.get_filtered_countries(self.app.continent, all_data)
+        data_size = len(data_quizz)
+        print(f"taille {data_size}")
+        random.shuffle(data_quizz)
+        return data_quizz, data_size
+
     def is_endgame(self):
-        if self.app.type_quizz == "mar" :
-            if self.app.engine.score == self.app.ui.goal_score:
-                print("fin")
+        if self.app.mode == "mar" :
+            #if len(self.app.question_ui.data_quizz) == 0:
+            if self.data_size == 0:
+
+                print(len(self.app.question_ui.data_quizz))
+                print("fin is_endgame mar len = 0")
                 return True
-            elif not self.app.ui.data_quizz:
-                ...
 
-            else:
-                return False
-
-        elif self.app.type_quizz == "norm":
-            if self.app.engine.score == self.app.ui.goal_score:
-                print("fin")
+            elif self.app.engine.lives == 0:
+                print("fin is_endgame mar lives = 0")
                 return True
             else:
                 return False
 
-        return None
+        elif self.app.mode == "norm":
+            if self.app.engine.score == GOALSCORE:
+                print("fin")
+                return True
+            elif self.app.engine.lives == 0:
+                print("fin")
+                return True
+            else:
+                return False
+
 
 
 

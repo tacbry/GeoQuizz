@@ -29,11 +29,12 @@ class Appli(App):
     mode = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut")#marathon / par defaut
     continent = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut")
     type_quizz = StringProperty("si ca s'affiche c'est que ca marche pas comme il faut") #capitale/flag/tout
-    score = NumericProperty(0)
+
     def __init__(self, **kwargs):
         super().__init__()
         self.engine = Engine()
         self.ui = BaseScreen()
+        self.question_ui = ShowQuizz()
 
     def build(self):
         Window.clearcolor = (0.15, 0.15, 0.15, 1)

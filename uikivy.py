@@ -1,3 +1,4 @@
+from logging.config import stopListening
 from pathlib import Path
 import random
 
@@ -33,7 +34,7 @@ def label_theme(text, **kwargs):
 CONSTANTES
 """
 BASEPATH = Path(__name__).parent #permet l'utilisation sur tous les systemes
-GOALSCORE = 15
+GOALSCORE = 2
 """"""
 
 class BaseScreen(Screen): #semble être la méthode la plus appropriée pour gerer le passage de variable. De plus la génération auto a directmeent compris
@@ -432,6 +433,7 @@ class ShowQuizz(BaseScreen):
     def __init__(self, **kwargs):
         super(ShowQuizz, self).__init__(**kwargs)
 
+        self.lives_label = None
         self.data_size = None
         self.flag = None
         self.score_label = None
@@ -449,11 +451,16 @@ class ShowQuizz(BaseScreen):
 
     def on_pre_enter(self): #prepare les données de jeu
         #self.type_quizz = self.app.type_quizz
-        all_data = self.app.engine.load_country_data()
-        self.data_quizz = self.app.engine.get_filtered_countries(self.app.continent, all_data)
-        self.data_size = len(self.data_quizz)
+        # all_data = self.app.engine.load_country_data()
+        # self.data_quizz = self.app.engine.get_filtered_countries(self.app.continent, all_data)
+        # self.data_size = len(self.data_quizz)
+        # print(self.data_size)
+        # random.shuffle(self.data_quizz)
+
+        self.data_quizz = self.app.engine.create_game_data()[0]
+        self.data_size = self.app.engine.create_game_data()[1]
+        print(self.data_quizz)
         print(self.data_size)
-        random.shuffle(self.data_quizz)
 
         if self.app.mode == 'mar':
             self.goal_score = self.data_size
@@ -464,19 +471,12 @@ class ShowQuizz(BaseScreen):
 
 
     def next_question(self):
-        # if self.app.engine.score == self.goal_score:
-        #     print("fin")
-        #
-        #     return
-
         if self.app.engine.is_endgame():
-            print("fin")
-            self.game_over()
+            print("fin next qu")
+            self.game_over() #pas de do reset avant d'avoir save le score dans le fichier
             return
 
-
         self.current_country = self.data_quizz.pop()
-
         self.question_layout.clear_widgets()
 
         if self.app.mode == 'mar':
@@ -504,8 +504,18 @@ class ShowQuizz(BaseScreen):
 
     def create_quizz_capitale(self, iso):
         layout = BoxLayout(orientation='vertical', size_hint=(1,None), height=450)
+
+        top_layout = BoxLayout(orientation = 'horizontal', size_hint_y = None, height = 50)
+
+        self.pseudo_label = Label(text=f"{self.app.pseudo}", size_hint_y= None, height=50)
+        top_layout.add_widget(self.pseudo_label)
         self.score_label = Label(text=f"{self.app.engine.score} / {self.goal_score}", size_hint_y=None, height=50)
-        layout.add_widget(self.score_label)
+        top_layout.add_widget(self.score_label)
+        self.lives_label = Label(text=f"Vies restantes : {self.app.engine.lives}", size_hint_y=None, height=50)
+        top_layout.add_widget(self.lives_label)
+
+        layout.add_widget(top_layout)
+
         self.country_name_label = Label(text=self.app.engine.get_name(iso), size_hint_y=None, height=50)
         layout.add_widget(self.country_name_label)
         self.flag = Image(source=self.app.engine.get_flag(iso),
@@ -543,12 +553,26 @@ class ShowQuizz(BaseScreen):
             print(f"{self.app.engine.score} points")
             self.next_question()
         else:
-            self.go_home(self) #todo gerer les erreur
-            self.app.engine.do_reset()
+            #self.go_home(self) #todo gerer les erreurs
+            #self.app.engine.do_reset()
+            self.next_question()
 
 
-    def game_over(self, instance):
-        self.app.root.current = 'menu'
+
+    def game_over(self):
+        #rien ne fonctionne pour l emoment
+
+        # on relie à question layout car c'est celui la qui est créé de base.
+
+        self.question_layout.clear_widgets()
+
+        layout = BoxLayout(orientation='vertical', size_hint=(1,None), height=450)
+        layout.add_widget(Label(text=f"fin", size_hint_y= None, height=50))
+
+        self.question_layout.add_widget(layout)
+
+        #+save response
+        #+ do reset
 
 
 
