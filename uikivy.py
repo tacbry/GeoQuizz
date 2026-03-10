@@ -35,7 +35,7 @@ def label_theme(text, **kwargs):
 CONSTANTES
 """
 BASEPATH = Path(__name__).parent #permet l'utilisation sur tous les systemes
-GOALSCORE = 2
+GOALSCORE = 15
 """"""
 
 class BaseScreen(Screen): #semble être la méthode la plus appropriée pour gerer le passage de variable. De plus la génération auto a directmeent compris

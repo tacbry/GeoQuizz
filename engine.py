@@ -4,6 +4,8 @@ import random
 from pathlib import Path
 import json
 import pickle
+import unicodedata #permet d'uniformiser les accents
+from rapidfuzz import distance #permet de calculer la distance entre 2 mots
 
 from kivy.app import App
 
@@ -128,7 +130,8 @@ class Engine :
     def check_capital(self, iso, answer):
         #affiche une question (sera bouclée dans une fonction de jeu plus générale qui choisira d'afficher question capitale, flag ou les deux)
         country_capital = self.app.engine.get_capitals(iso)
-        if answer.lower() == country_capital.lower() :
+        if self.manage_answer(answer.lower(), country_capital.lower()):
+        #if answer.lower() == country_capital.lower() :
             self.score += 1
             return True
         elif answer.lower() == 'debug':
@@ -137,6 +140,35 @@ class Engine :
         else :
             self.lives -=1
             return False
+
+    def manage_answer(self, answer, data):  # gere la tolerance orthographique
+        cleaned_answer = self.clean_text(answer)
+        cleaned_data = self.clean_text(data)
+
+        nb_error = distance.Levenshtein.distance(cleaned_answer, cleaned_data)
+
+        if len(cleaned_data) < 5:
+            if nb_error <= 2:
+                return True
+            else:
+                return False #on accepte max 2 erreurs sur les mot de moins de 5 lettres
+        else:
+            if nb_error <= 3:
+                return True
+            else:
+                return False
+
+
+
+
+    @staticmethod
+    def clean_text(text):
+        text = text.strip().lower()  # retrait des espaces et mise en minuscule
+        text = " ".join(
+            c for c in unicodedata.normalize('NFD', text) #nfd (Normalization Form Canonical Decomposition) permet d'indiquer qu'on veut separer les accents de la lettre
+            if unicodedata.category(c) != "Mn" # Mn (Mark, Nonspacing) permet d'indiquer qu'on ne veut pas garder les accents
+        )
+        return text
 
 
     def do_reset(self):
@@ -197,6 +229,9 @@ class Engine :
                 return True
             else:
                 return False
+
+
+
 
 
 

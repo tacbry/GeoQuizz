@@ -8,5 +8,6 @@ dependencies = [
     "notebook>=7.5.3",
     "pillow==12.1.1",
     "pytest==9.0.2",
+    "rapidfuzz>=3.14.3",
     "self>=2020.12.3",
 ]
