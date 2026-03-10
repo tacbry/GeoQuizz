@@ -1,6 +1,7 @@
 from logging.config import stopListening
 from pathlib import Path
 import random
+from kivy.clock import Clock
 
 from kivy.app import App
 from kivy.graphics import Color, Ellipse, Rectangle
@@ -469,6 +470,10 @@ class ShowQuizz(BaseScreen):
 
         self.next_question()
 
+    def on_enter(self, *args):
+        Clock.schedule_once(lambda dt: setattr(self.input_answer, "focus", True))
+        #permet le focus sur la premiere slide
+
 
     def next_question(self):
         if self.app.engine.is_endgame():
@@ -478,6 +483,8 @@ class ShowQuizz(BaseScreen):
 
         self.current_country = self.data_quizz.pop()
         self.question_layout.clear_widgets()
+
+        self.app.engine.data_size = len(self.data_quizz)
 
         if self.app.mode == 'mar':
             self.goal_score = self.data_size
@@ -509,7 +516,13 @@ class ShowQuizz(BaseScreen):
 
         self.pseudo_label = Label(text=f"{self.app.pseudo}", size_hint_y= None, height=50)
         top_layout.add_widget(self.pseudo_label)
-        self.score_label = Label(text=f"{self.app.engine.score} / {self.goal_score}", size_hint_y=None, height=50)
+        if self.app.mode == 'mar':
+            self.score_label = Label(text=f"{self.app.engine.score} / {self.goal_score - self.app.engine.data_size - 1} ({self.app.engine.data_size} restants)", size_hint_y=None, height=50)
+            #self.goal_score - self.app.engine.data_size + 1 pour permettre au joueur de voir sa progression (le -1 corrige le pop)
+        else :
+            self.score_label = Label(
+                text=f"{self.app.engine.score} / {self.goal_score}", size_hint_y=None,
+                height=50)
         top_layout.add_widget(self.score_label)
         self.lives_label = Label(text=f"Vies restantes : {self.app.engine.lives}", size_hint_y=None, height=50)
         top_layout.add_widget(self.lives_label)
@@ -526,7 +539,6 @@ class ShowQuizz(BaseScreen):
         answer_layout = BoxLayout(orientation='horizontal', size_hint=(1,None), height=200, padding=10, spacing=10)
 
         self.input_answer = TextInput(text="", multiline=False, size_hint_y=None, height=50, on_text_validate=self.validate)
-
         answer_layout.add_widget(self.input_answer)
 
         answer_layout.add_widget(Button(
@@ -542,6 +554,7 @@ class ShowQuizz(BaseScreen):
 
 
         self.question_layout.add_widget(layout)
+        Clock.schedule_once(lambda dt: setattr(self.input_answer, "focus", True))
 
     def create_quizz_flag(self, iso):
         ...
@@ -560,7 +573,6 @@ class ShowQuizz(BaseScreen):
 
 
     def game_over(self):
-        #rien ne fonctionne pour l emoment
 
         # on relie à question layout car c'est celui la qui est créé de base.
 
