@@ -27,6 +27,7 @@ class Engine :
         self.country_data = None
         self.score = 0
         self.lives = 3
+        self.param_all = None #pour gerer la correction du mode mixte
 
 
     @property
@@ -118,20 +119,36 @@ class Engine :
 
     #Fonctions de jeu :
 
-    def check_answer(self, type_quizz, iso, answer): #dispatcher de mode de jeu
+    def check_answer(self, type_quizz, iso, answer, param_all = None): #dispatcher de mode de jeu
         if type_quizz == 'Capitale':
-            return self.app.engine.check_capital(iso, answer)
+            self.app.engine.check_capital(iso, answer)
         elif type_quizz == 'Drapeau':
             self.app.engine.check_flags(iso, answer)
         elif type_quizz == 'Tout': #pas ici que le choix doit se faire, la logique de verification se fait as comme ca
-            rand_value = random.randint(1,2)
-            self.app.engine.check_capital(iso, answer) if rand_value == 1 else self.app.engine.check_flags(iso, answer)
+            if param_all == "capital":
+                self.app.engine.check_capital(iso, answer)
+            elif param_all == "flag":
+                self.app.engine.check_flags(iso, answer)
 
     def check_capital(self, iso, answer):
         #affiche une question (sera bouclée dans une fonction de jeu plus générale qui choisira d'afficher question capitale, flag ou les deux)
         country_capital = self.app.engine.get_capitals(iso)
         if self.manage_answer(answer.lower(), country_capital.lower()):
         #if answer.lower() == country_capital.lower() :
+            self.score += 1
+            return True
+        elif answer.lower() == 'debug':
+            self.score += 1
+            return True
+        else :
+            self.lives -=1
+            return False
+
+    def check_flag(self, iso, answer):
+        #affiche une question (sera bouclée dans une fonction de jeu plus générale qui choisira d'afficher question capitale, flag ou les deux)
+        country_capital = self.app.engine.get_capitals(iso)
+        good_answer = self.app.engine.get_name(iso)
+        if self.manage_answer(answer.lower(), good_answer.lower()):
             self.score += 1
             return True
         elif answer.lower() == 'debug':
