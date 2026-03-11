@@ -123,18 +123,18 @@ class Engine :
         if type_quizz == 'Capitale':
             self.app.engine.check_capital(iso, answer)
         elif type_quizz == 'Drapeau':
-            self.app.engine.check_flags(iso, answer)
+            self.app.engine.check_flag(iso, answer)
         elif type_quizz == 'Tout': #pas ici que le choix doit se faire, la logique de verification se fait as comme ca
-            if param_all == "capital":
+            if self.param_all == "capital":
                 self.app.engine.check_capital(iso, answer)
-            elif param_all == "flag":
-                self.app.engine.check_flags(iso, answer)
+            elif self.param_all == "flag":
+                self.app.engine.check_flag(iso, answer)
 
     def check_capital(self, iso, answer):
         #affiche une question (sera bouclée dans une fonction de jeu plus générale qui choisira d'afficher question capitale, flag ou les deux)
         country_capital = self.app.engine.get_capitals(iso)
+        print(f"bonne reponse : {country_capital.lower()}")
         if self.manage_answer(answer.lower(), country_capital.lower()):
-        #if answer.lower() == country_capital.lower() :
             self.score += 1
             return True
         elif answer.lower() == 'debug':
@@ -147,8 +147,9 @@ class Engine :
     def check_flag(self, iso, answer):
         #affiche une question (sera bouclée dans une fonction de jeu plus générale qui choisira d'afficher question capitale, flag ou les deux)
         country_capital = self.app.engine.get_capitals(iso)
-        good_answer = self.app.engine.get_name(iso)
-        if self.manage_answer(answer.lower(), good_answer.lower()):
+        country_flag = self.app.engine.get_name(iso)
+        print(f"bonne reponse : {country_flag.lower()}")
+        if self.manage_answer(answer.lower(), country_flag.lower()):
             self.score += 1
             return True
         elif answer.lower() == 'debug':
@@ -197,17 +198,74 @@ class Engine :
     def check_flags(self, iso, answer):
         pass
 
-    def get_filtered_countries(self, continent, all_data):
+    @staticmethod
+    def get_filtered_countries(continent, all_data):
         if continent == "Monde":
             return all_data
         return [c for c in all_data if c["continents"] == continent]
 
 
-    def save_score(self, pseudo, score, mode, type_quizz):
-        ...#todo sauver pseudo, score et mode de jeu + type pour permettre d'afficher au bon endroit
+    def save_score(self, pseudo, score, goalscore, mode, type_quizz):
+        result = [pseudo, score, goalscore, mode, type_quizz]
+        path = BASEPATH / 'leaderboard.csv'
+
+        file_exists = path.exists() #on check si le fichier existe pour definir plus tard si il faut ajouter les noms de colonnes
+
+        with open(path , 'a', encoding='utf-8', newline='') as f: #a pour append, w supprimerai les anciens scores
+            writer = csv.writer(f, delimiter=",")
+
+            if not file_exists:
+                writer.writerow(["pseudo", "score", "goalscore", "mode", "type_quizz"])
+
+            writer.writerow([pseudo, score, goalscore, mode, type_quizz])
+
+
+
+
+            ### Permet d'exporter la liste des pays et iso
+            # liste_export = []
+            # for item in country_data:
+            #     #ligne = f"{item['name']};{item['code']}"
+            #     liste_export.append((item["name"], item["code"]))
+            #
+            # with open("export.csv", "w", encoding="utf-8", newline="") as f:
+            #     writer = csv.writer(f, delimiter=";")
+            #     #writer.writerow(["name", "code"])
+            #     for nom, iso in liste_export:
+            #         writer.writerow([nom, iso])
+
+        #todo sauver pseudo, score et mode de jeu + type pour permettre d'afficher au bon endroit
 
     def load_score(self, mode, type_quizz):
-        ... #todo ajouter tri des données pour donner les 10 meilleurs
+        with open(BASEPATH / 'loadboard.csv', 'r', encoding='utf-8') as f:
+            diff_data = list(csv.reader(f, delimiter=';'))
+        #todo ajouter tri des données pour donner les 10 meilleurs
+
+    def get_filtered_scores(self, continent=None, mode=None, type_quizz=None):
+        path = BASEPATH / 'loadboard.csv'
+        if not path.exists():
+            return []
+
+        all_scores = []
+        with open(path, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f, delimiter=',')
+            for row in reader:
+                cond_cont = (continent is None or row['continent'] == continent)
+                cond_mode = (mode is None or row['mode'] == mode)
+                cond_type = (type_quizz is None or row['type_quizz'] == type_quizz)
+
+                if cond_cont and cond_mode and cond_type:
+                    # On convertit les scores en int pour le tri
+                    row['score'] = int(row['score'])
+                    row['total'] = int(row['total'])
+                    # On calcule le % de réussite pour un tri plus juste si les totaux diffèrent
+                    row['percent'] = (row['score'] / row['total']) * 100
+                    all_scores.append(row)
+
+        # TRI : Par pourcentage de réussite, puis par score brut
+        all_scores.sort(key=lambda x: (x['percent'], x['score']), reverse=True)
+
+        return all_scores[:10]
 
     def create_game_data(self):
         all_data = self.load_country_data()
@@ -215,6 +273,15 @@ class Engine :
         self.data_size = len(data_quizz)
         print(f"taille {self.data_size}")
         random.shuffle(data_quizz)
+
+        #limiter la liste pour le mode par défaut
+        if self.app.mode == "norm":
+            if GOALSCORE > len(data_quizz):
+                data_quizz = data_quizz[:len(data_quizz)] #gestion du cas ou la liste serait plus petite que le goalscore
+            else:
+                print(data_quizz[:GOALSCORE])
+                data_quizz = data_quizz[:GOALSCORE]
+
         return data_quizz, self.data_size
 
     def is_endgame(self):

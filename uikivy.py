@@ -35,7 +35,7 @@ def label_theme(text, **kwargs):
 CONSTANTES
 """
 BASEPATH = Path(__name__).parent #permet l'utilisation sur tous les systemes
-GOALSCORE = 15
+GOALSCORE = 3
 """"""
 
 class BaseScreen(Screen): #semble être la méthode la plus appropriée pour gerer le passage de variable. De plus la génération auto a directmeent compris
@@ -204,21 +204,21 @@ class SubmenuMode(BaseScreen):
 
         layout.add_widget(
             Button(
-                text="Marathon",
-                color=BLANC,
-                size_hint_y=None,
-                height=60,
-                on_press=self.go_submenu_cont_by_mar
-            )
-        )
-
-        layout.add_widget(
-            Button(
                 text="Par défaut",
                 color=BLANC,
                 size_hint_y=None,
                 height=60,
                 on_press=self.go_submenu_cont_by_norm
+            )
+        )
+
+        layout.add_widget(
+            Button(
+                text="Marathon",
+                color=BLANC,
+                size_hint_y=None,
+                height=60,
+                on_press=self.go_submenu_cont_by_mar
             )
         )
 
@@ -430,6 +430,7 @@ class ShowQuizz(BaseScreen):
     def __init__(self, **kwargs):
         super(ShowQuizz, self).__init__(**kwargs)
 
+        self.input_answer = None
         self.lives_label = None
         self.data_size = None
         self.flag = None
@@ -467,7 +468,7 @@ class ShowQuizz(BaseScreen):
         self.next_question()
 
     def on_enter(self, *args):
-        Clock.schedule_once(lambda dt: setattr(self.input_answer, "focus", True))
+        ...#Clock.schedule_once(lambda dt: setattr(self.input_answer, "focus", True))
         #permet le focus sur la premiere slide
 
 
@@ -481,43 +482,52 @@ class ShowQuizz(BaseScreen):
         self.question_layout.clear_widgets()
 
         self.app.engine.data_size = len(self.data_quizz)
+        current_mode = self.app.type_quizz.lower()
 
         if self.app.mode == 'mar':
             self.goal_score = self.data_size
         else:
             self.goal_score = GOALSCORE
 
-        if self.app.type_quizz == 'Capitale':
-            self.create_quizz_capitale(self.current_country["code"])
+        # if current_mode == 'capitale':
+        #     self.create_quizz_capitale(self.current_country["code"])
+        #
+        #
+        # elif current_mode == 'drapeau':
+        #     #self.create_quizz_flag(self.current_country["code"])create_quizz_capitale
+        #     self.create_quizz_capitale(self.current_country["code"])
+
+        if current_mode in ['capitale', 'drapeau']:
+            self.create_quizz(self.current_country["code"])
 
 
-        elif self.app.type_quizz == 'Drapeau':
-            self.create_quizz_flag(self.current_country["code"])
-
-        elif self.type_quizz == 'Tout':
-            rand_value = random.randint(1, 2)
-            if rand_value == 1:
-                self.create_quizz_capitale(self.current_country["code"])
+        elif current_mode == 'tout':
+            rand_value = random.choice(['capital', 'flag'])
+            if rand_value == 'capital':
+                print("DEBUG: Lancement Capitale")
+                self.create_quizz(self.current_country["code"])
                 self.app.engine.param_all = 'capital'
             else :
-                self.create_quizz_flag(self.current_country["code"])
+                print("DEBUG: Lancement Drapeau")
+                self.create_quizz(self.current_country["code"])
                 self.app.engine.param_all = 'flag'
 
 
 
 
-    def go_home(self, instance):
+    def go_home(self):
         self.app.root.current = 'menu'
 
 
 
-    def create_quizz_capitale(self, iso):
-        layout = BoxLayout(orientation='vertical', size_hint=(1,None), height=450)
+    def create_quizz(self, iso):
+        layout = BoxLayout(orientation='vertical', size_hint=(1,None), height=500)
 
         top_layout = BoxLayout(orientation = 'horizontal', size_hint_y = None, height = 50)
 
         self.pseudo_label = Label(text=f"{self.app.pseudo}", size_hint_y= None, height=50)
         top_layout.add_widget(self.pseudo_label)
+
         if self.app.mode == 'mar':
             self.score_label = Label(text=f"{self.app.engine.score} / {self.goal_score - self.app.engine.data_size - 1} ({self.app.engine.data_size} restants)", size_hint_y=None, height=50)
             #self.goal_score - self.app.engine.data_size + 1 pour permettre au joueur de voir sa progression (le -1 corrige le pop)
@@ -525,18 +535,32 @@ class ShowQuizz(BaseScreen):
             self.score_label = Label(
                 text=f"{self.app.engine.score} / {self.goal_score}", size_hint_y=None,
                 height=50)
+
         top_layout.add_widget(self.score_label)
+
+
         self.lives_label = Label(text=f"Vies restantes : {self.app.engine.lives}", size_hint_y=None, height=50)
         top_layout.add_widget(self.lives_label)
 
         layout.add_widget(top_layout)
 
-        self.country_name_label = Label(text=self.app.engine.get_name(iso), size_hint_y=None, height=50)
-        layout.add_widget(self.country_name_label)
+        if self.app.engine.param_all == 'capital' or self.app.type_quizz.lower() == 'capitale':
+            self.country_name_label = Label(text=self.app.engine.get_name(iso), size_hint_y=None, height=50)
+            layout.add_widget(self.country_name_label)
+        elif self.app.engine.param_all == 'flag' or self.app.type_quizz.lower() == 'drapeau':
+            layout.add_widget(BoxLayout(orientation='vertical', size_hint=(1,None), height=50)) #bl vide pour eviter un décalage
+
         self.flag = Image(source=self.app.engine.get_flag(iso),
                           size_hint=(None, None),
                           size=(200, 150), pos_hint={'center_x': .5})
         layout.add_widget(self.flag)
+
+        if self.app.engine.param_all == 'capital' or self.app.type_quizz.lower() == 'capitale':
+            layout.add_widget(Label(text=f"Capitale ?", size_hint_y=None, height=50))
+        elif self.app.engine.param_all == 'flag'or self.app.type_quizz.lower() == 'drapeau':
+            layout.add_widget(Label(text=f"Pays ?", size_hint_y=None, height=50))
+
+
 
         answer_layout = BoxLayout(orientation='horizontal', size_hint=(1,None), height=200, padding=10, spacing=10)
 
@@ -558,56 +582,6 @@ class ShowQuizz(BaseScreen):
         self.question_layout.add_widget(layout)
         Clock.schedule_once(lambda dt: setattr(self.input_answer, "focus", True))
 
-    def create_quizz_flag(self, iso):
-        layout = BoxLayout(orientation='vertical', size_hint=(1, None), height=450)
-
-        top_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=50)
-
-        self.pseudo_label = Label(text=f"{self.app.pseudo}", size_hint_y=None, height=50)
-        top_layout.add_widget(self.pseudo_label)
-        if self.app.mode == 'mar':
-            self.score_label = Label(
-                text=f"{self.app.engine.score} / {self.goal_score - self.app.engine.data_size - 1} ({self.app.engine.data_size} restants)",
-                size_hint_y=None, height=50)
-            # self.goal_score - self.app.engine.data_size + 1 pour permettre au joueur de voir sa progression (le -1 corrige le pop)
-        else:
-            self.score_label = Label(
-                text=f"{self.app.engine.score} / {self.goal_score}", size_hint_y=None,
-                height=50)
-        top_layout.add_widget(self.score_label)
-        self.lives_label = Label(text=f"Vies restantes : {self.app.engine.lives}", size_hint_y=None, height=50)
-        top_layout.add_widget(self.lives_label)
-
-        layout.add_widget(top_layout)
-
-        # self.country_name_label = Label(text=self.app.engine.get_name(iso), size_hint_y=None, height=50)
-        # layout.add_widget(self.country_name_label)
-        ## voir si possible de l'aficher si joueur ne trouve pas
-
-        self.flag = Image(source=self.app.engine.get_flag(iso),
-                          size_hint=(None, None),
-                          size=(200, 150), pos_hint={'center_x': .5})
-        layout.add_widget(self.flag)
-
-        answer_layout = BoxLayout(orientation='horizontal', size_hint=(1, None), height=200, padding=10, spacing=10)
-
-        self.input_answer = TextInput(text="", multiline=False, size_hint_y=None, height=50,
-                                      on_text_validate=self.validate)
-        answer_layout.add_widget(self.input_answer)
-
-        answer_layout.add_widget(Button(
-            text="Valider",
-            color=BLANC,
-            background_color=TEAL,
-            size_hint_y=None,
-            height=50,
-            on_press=self.validate)
-        )
-
-        layout.add_widget(answer_layout)
-
-        self.question_layout.add_widget(layout)
-        Clock.schedule_once(lambda dt: setattr(self.input_answer, "focus", True))
 
     def validate(self, instance):
 
@@ -629,12 +603,64 @@ class ShowQuizz(BaseScreen):
         self.question_layout.clear_widgets()
 
         layout = BoxLayout(orientation='vertical', size_hint=(1,None), height=450)
-        layout.add_widget(Label(text=f"fin", size_hint_y= None, height=50))
+
+        layout.add_widget(Label(text=f"fin de partie", size_hint_y= None, height=50))
+        layout.add_widget(Label(text=f"Score", size_hint_y=None, height=50))
+
+        score_layout = BoxLayout(orientation='horizontal', size_hint=(1,None), height=50)
+        score_layout.add_widget(Label(text=f"{self.app.pseudo}", size_hint_y=None, height=50))
+        score_layout.add_widget(Label(text=f"{self.app.engine.score} / {self.goal_score}", size_hint_y=None, height=50))
+
+        layout.add_widget(score_layout)
+
+        btn_layout = BoxLayout(orientation='horizontal', size_hint=(1,None), height=450)
+        btn_layout.add_widget(
+            Button(
+            text="Acceuil",
+            color=BLANC,
+            background_color=TEAL,
+            size_hint_y=None,
+            height=50,
+            on_press=lambda kdb: self.end_game('home')
+            )
+        )
+
+        btn_layout.add_widget(
+            Button(
+            text="Hall of Fame",
+            color=BLANC,
+            background_color=TEAL,
+            size_hint_y=None,
+            height=50,
+            on_press=lambda kdb: self.end_game('lb')
+            )
+        )
+
+
+        layout.add_widget(btn_layout)
 
         self.question_layout.add_widget(layout)
 
-        #+save response
-        #+ do reset
+    def end_game(self, target):
+        self.app.engine.save_score(
+            pseudo= self.app.pseudo,
+            #score= self.score_label.text, #voir si je garde ca ou bien si je divise et que je prends self.app.engine.score
+            score= self.app.engine.score,
+            goalscore = GOALSCORE,
+            mode=self.app.mode,
+            type_quizz=self.app.type_quizz
+        )
+
+        self.app.engine.do_reset()
+
+        if target == 'home':
+            self.go_home()
+        if target == 'lb':
+            self.go_leaderboard()
+
+    def go_leaderboard(self):
+        self.app.root.current = 'show-lb'
+
 
 
 
@@ -642,7 +668,6 @@ class ShowQuizz(BaseScreen):
 
 # #adapter en class
 #class ShowGameOver(BaseScreen):
-
 
 
 
