@@ -120,15 +120,15 @@ class Engine :
     #Fonctions de jeu :
 
     def check_answer(self, type_quizz, iso, answer, param_all = None): #dispatcher de mode de jeu
-        if type_quizz == 'Capitale':
-            self.app.engine.check_capital(iso, answer)
-        elif type_quizz == 'Drapeau':
-            self.app.engine.check_flag(iso, answer)
-        elif type_quizz == 'Tout': #pas ici que le choix doit se faire, la logique de verification se fait as comme ca
+        if type_quizz.lower() == 'capitale':
+            return self.app.engine.check_capital(iso, answer)
+        elif type_quizz.lower() == 'drapeau':
+            return self.app.engine.check_flag(iso, answer)
+        elif type_quizz.lower() == 'tout': #pas ici que le choix doit se faire, la logique de verification se fait as comme ca
             if self.param_all == "capital":
-                self.app.engine.check_capital(iso, answer)
+                return self.app.engine.check_capital(iso, answer)
             elif self.param_all == "flag":
-                self.app.engine.check_flag(iso, answer)
+                return self.app.engine.check_flag(iso, answer)
 
     def check_capital(self, iso, answer):
         #affiche une question (sera bouclée dans une fonction de jeu plus générale qui choisira d'afficher question capitale, flag ou les deux)
@@ -205,8 +205,8 @@ class Engine :
         return [c for c in all_data if c["continents"] == continent]
 
 
-    def save_score(self, pseudo, score, goalscore, mode, type_quizz):
-        result = [pseudo, score, goalscore, mode, type_quizz]
+    def save_score(self, pseudo, score, goalscore, continent, mode, type_quizz):
+        result = [pseudo, score, goalscore, continent, mode, type_quizz]
         path = BASEPATH / 'leaderboard.csv'
 
         file_exists = path.exists() #on check si le fichier existe pour definir plus tard si il faut ajouter les noms de colonnes
@@ -215,9 +215,9 @@ class Engine :
             writer = csv.writer(f, delimiter=",")
 
             if not file_exists:
-                writer.writerow(["pseudo", "score", "goalscore", "mode", "type_quizz"])
+                writer.writerow(["pseudo", "score", "goalscore","continent", "mode", "type_quizz"])
 
-            writer.writerow([pseudo, score, goalscore, mode, type_quizz])
+            writer.writerow([pseudo, score, goalscore, continent, mode, type_quizz])
 
 
 
@@ -237,12 +237,12 @@ class Engine :
         #todo sauver pseudo, score et mode de jeu + type pour permettre d'afficher au bon endroit
 
     def load_score(self, mode, type_quizz):
-        with open(BASEPATH / 'loadboard.csv', 'r', encoding='utf-8') as f:
+        with open(BASEPATH / 'leaderboard.csv', 'r', encoding='utf-8') as f:
             diff_data = list(csv.reader(f, delimiter=';'))
         #todo ajouter tri des données pour donner les 10 meilleurs
 
     def get_filtered_scores(self, continent=None, mode=None, type_quizz=None):
-        path = BASEPATH / 'loadboard.csv'
+        path = BASEPATH / 'leaderboard.csv'
         if not path.exists():
             return []
 
@@ -257,9 +257,9 @@ class Engine :
                 if cond_cont and cond_mode and cond_type:
                     # On convertit les scores en int pour le tri
                     row['score'] = int(row['score'])
-                    row['total'] = int(row['total'])
+                    row['goalscore'] = int(row['goalscore'])
                     # On calcule le % de réussite pour un tri plus juste si les totaux diffèrent
-                    row['percent'] = (row['score'] / row['total']) * 100
+                    row['percent'] = (row['score'] / row['goalscore']) * 100
                     all_scores.append(row)
 
         # TRI : Par pourcentage de réussite, puis par score brut

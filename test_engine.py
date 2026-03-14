@@ -22,7 +22,7 @@ def test_get_name(get_engine):
     assert get_engine.get_name('AD') == 'Andorra'
 
 def test_get_capital():
-    assert engine.Engine.get_capitals('AD') == 'Andorra la Vella'
+    assert engine.Engine.get_capitals(iso = 'AD') == 'Andorra la Vella'
 
 
 @pytest.mark.parametrize(

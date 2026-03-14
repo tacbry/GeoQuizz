@@ -1,3 +1,3 @@
-pseudo,score,mode,type_quizz
-Player 1,2 / 3,norm,Capitale
-Player 1,1 / 3,norm,Drapeau
+pseudo,score,goalscore,continent,mode,type_quizz
+Player 1,5,15,Monde,norm,Capitale
+Player 1,4,15,Africa,norm,Drapeau

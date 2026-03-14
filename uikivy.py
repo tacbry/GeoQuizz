@@ -5,6 +5,7 @@ from kivy.clock import Clock
 
 from kivy.app import App
 from kivy.graphics import Color, Ellipse, Rectangle
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import Image
 
 from kivy.uix.boxlayout import BoxLayout
@@ -12,6 +13,8 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.spinner import Spinner
 from kivy.uix.stacklayout import StackLayout
 from kivy.uix.textinput import TextInput
 
@@ -35,7 +38,7 @@ def label_theme(text, **kwargs):
 CONSTANTES
 """
 BASEPATH = Path(__name__).parent #permet l'utilisation sur tous les systemes
-GOALSCORE = 3
+GOALSCORE = 15
 """"""
 
 class BaseScreen(Screen): #semble être la méthode la plus appropriée pour gerer le passage de variable. De plus la génération auto a directmeent compris
@@ -118,7 +121,7 @@ class DrawBoard(BoxLayout): #centralise l'affichage des choxi
             if App.get_running_app().mode == 'mar':
                 self.label_mode.text = 'Mode Marathon'
             elif App.get_running_app().mode == 'norm':
-                self.label_mode.text = 'Mode Normal'
+                self.label_mode.text = 'Mode par défaut'
 
         if show_pseudo:
             self.label_pseudo.text = f"Pseudo : {App.get_running_app().pseudo}"
@@ -474,7 +477,7 @@ class ShowQuizz(BaseScreen):
 
     def next_question(self):
         if self.app.engine.is_endgame():
-            print("fin next qu")
+            print("DEBUG : fin next qu")
             self.game_over() #pas de do reset avant d'avoir save le score dans le fichier
             return
 
@@ -484,10 +487,39 @@ class ShowQuizz(BaseScreen):
         self.app.engine.data_size = len(self.data_quizz)
         current_mode = self.app.type_quizz.lower()
 
+         #reinitialisation du paramtre a chaque question
+
+        if current_mode == 'tout':
+            self.app.engine.param_all = random.choice(['capital', 'flag'])
+        else:
+            self.app.engine.param_all = None
+
+
         if self.app.mode == 'mar':
             self.goal_score = self.data_size
         else:
             self.goal_score = GOALSCORE
+
+        self.create_quizz(self.current_country["code"])
+
+        # if current_mode in ['capitale', 'drapeau']:
+        #     self.create_quizz(self.current_country["code"])
+
+
+        # elif current_mode == 'tout':
+        #     rand_value = random.choice(['capital', 'flag'])
+        #     if rand_value == 'capital':
+        #         print("DEBUG: Lancement Capitale")
+        #         self.create_quizz(self.current_country["code"])
+        #         self.app.engine.param_all = 'capital'
+        #     else :
+        #         print("DEBUG: Lancement Drapeau")
+        #         self.create_quizz(self.current_country["code"])
+        #         self.app.engine.param_all = 'flag'
+
+
+
+
 
         # if current_mode == 'capitale':
         #     self.create_quizz_capitale(self.current_country["code"])
@@ -497,20 +529,7 @@ class ShowQuizz(BaseScreen):
         #     #self.create_quizz_flag(self.current_country["code"])create_quizz_capitale
         #     self.create_quizz_capitale(self.current_country["code"])
 
-        if current_mode in ['capitale', 'drapeau']:
-            self.create_quizz(self.current_country["code"])
 
-
-        elif current_mode == 'tout':
-            rand_value = random.choice(['capital', 'flag'])
-            if rand_value == 'capital':
-                print("DEBUG: Lancement Capitale")
-                self.create_quizz(self.current_country["code"])
-                self.app.engine.param_all = 'capital'
-            else :
-                print("DEBUG: Lancement Drapeau")
-                self.create_quizz(self.current_country["code"])
-                self.app.engine.param_all = 'flag'
 
 
 
@@ -521,6 +540,9 @@ class ShowQuizz(BaseScreen):
 
 
     def create_quizz(self, iso):
+        is_capital_mode = (self.app.engine.param_all == 'capital' or
+                           self.app.type_quizz.lower() == 'capitale')
+
         layout = BoxLayout(orientation='vertical', size_hint=(1,None), height=500)
 
         top_layout = BoxLayout(orientation = 'horizontal', size_hint_y = None, height = 50)
@@ -544,21 +566,38 @@ class ShowQuizz(BaseScreen):
 
         layout.add_widget(top_layout)
 
-        if self.app.engine.param_all == 'capital' or self.app.type_quizz.lower() == 'capitale':
+
+
+        # if self.app.engine.param_all == 'capital' or self.app.type_quizz.lower() == 'capitale':
+        #     self.country_name_label = Label(text=self.app.engine.get_name(iso), size_hint_y=None, height=50)
+        #     layout.add_widget(self.country_name_label)
+        # elif self.app.engine.param_all == 'flag' or self.app.type_quizz.lower() == 'drapeau':
+        #     layout.add_widget(BoxLayout(orientation='vertical', size_hint=(1,None), height=50)) #bl vide pour eviter un décalage
+
+        # if self.app.engine.param_all == 'capital' or self.app.type_quizz.lower() == 'capitale':
+        #     layout.add_widget(Label(text=f"Capitale ?", size_hint_y=None, height=50))
+        # elif self.app.engine.param_all == 'flag'or self.app.type_quizz.lower() == 'drapeau':
+        #     layout.add_widget(Label(text=f"Pays ?", size_hint_y=None, height=50))
+
+
+        if is_capital_mode :
             self.country_name_label = Label(text=self.app.engine.get_name(iso), size_hint_y=None, height=50)
             layout.add_widget(self.country_name_label)
-        elif self.app.engine.param_all == 'flag' or self.app.type_quizz.lower() == 'drapeau':
-            layout.add_widget(BoxLayout(orientation='vertical', size_hint=(1,None), height=50)) #bl vide pour eviter un décalage
+        else :
+            layout.add_widget(Label(size_hint_y=None, height=50)) #espace vide pour maitenir les hauteurs cohérentes
 
         self.flag = Image(source=self.app.engine.get_flag(iso),
                           size_hint=(None, None),
                           size=(200, 150), pos_hint={'center_x': .5})
         layout.add_widget(self.flag)
 
-        if self.app.engine.param_all == 'capital' or self.app.type_quizz.lower() == 'capitale':
-            layout.add_widget(Label(text=f"Capitale ?", size_hint_y=None, height=50))
-        elif self.app.engine.param_all == 'flag'or self.app.type_quizz.lower() == 'drapeau':
-            layout.add_widget(Label(text=f"Pays ?", size_hint_y=None, height=50))
+        #question
+
+        question_text = "Capitale ?" if is_capital_mode else "Pays ?"
+        layout.add_widget(Label(text=question_text, size_hint_y=None, height=50))
+
+
+
 
 
 
@@ -647,6 +686,7 @@ class ShowQuizz(BaseScreen):
             #score= self.score_label.text, #voir si je garde ca ou bien si je divise et que je prends self.app.engine.score
             score= self.app.engine.score,
             goalscore = GOALSCORE,
+            continent= self.app.continent,
             mode=self.app.mode,
             type_quizz=self.app.type_quizz
         )
@@ -674,10 +714,85 @@ class ShowQuizz(BaseScreen):
 class ShowLeaderboard(BaseScreen):
     def __init__(self, **kwargs):
         super(ShowLeaderboard, self).__init__(**kwargs)
+        self.layout = BoxLayout(orientation='vertical', padding=20, spacing=10)
+
+        # --- Barre de filtres ---
+        self.filters_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=50, spacing=10)
+
+        # On définit les options (doivent matcher avec les valeurs de ton CSV)
+        self.spin_cont = Spinner(text='Monde', values=('Monde', 'Africa', 'America', 'Asia', 'Europe', 'Oceania'))
+        self.spin_mode = Spinner(text='norm', values=('norm', 'mar'))
+        self.spin_type = Spinner(text='Capitale', values=('Capitale', 'Drapeau', 'Tout'))
+
+        # On lie le changement de texte à la mise à jour automatique
+        self.spin_cont.bind(text=self.update_view)
+        self.spin_mode.bind(text=self.update_view)
+        self.spin_type.bind(text=self.update_view)
+
+        self.filters_layout.add_widget(self.spin_cont)
+        self.filters_layout.add_widget(self.spin_mode)
+        self.filters_layout.add_widget(self.spin_type)
+
+        self.layout.add_widget(self.filters_layout)
+
+        # --- Tableau des scores ---
+        self.scroll = ScrollView(size_hint=(1, 1))
+        self.score_table = GridLayout(cols=4, size_hint_y=None, spacing=5)
+        self.score_table.bind(minimum_height=self.score_table.setter('height'))
+
+        self.scroll.add_widget(self.score_table)
+        self.layout.add_widget(self.scroll)
+
+        # Bouton Retour
+        self.layout.add_widget(Button(text="Retour", size_hint_y=None, height=50, on_press=self.go_back))
+
+        self.add_widget(self.layout)
 
     def on_pre_enter(self):
         #charger le fichier
-        ...
+        # Initialise la vue au chargement de l'écran
+        self.update_view()
+
+    def go_back(self, instance):
+        self.app.root.current = 'menu'
+
+    def update_view(self, *args):
+        # 1. Nettoyer le tableau actuel
+        self.score_table.clear_widgets()
+
+        # 2. Récupérer les filtres sélectionnés
+        # Note : Si 'Monde' est sélectionné, on envoie None pour ne pas filtrer sur un continent précis
+        cont = self.spin_cont.text if self.spin_cont.text != 'Monde' else None
+        mode = self.spin_mode.text
+        quizz = self.spin_type.text
+
+        # 3. Appeler ton moteur
+        data = self.app.engine.get_filtered_scores(continent=cont, mode=mode, type_quizz=quizz)
+
+        # 4. Construire l'en-tête du tableau
+        self.add_header()
+
+        # 5. Remplir avec les scores
+        if not data:
+            self.score_table.add_widget(Label(text="Aucun score", size_hint_y=None, height=40))
+            # On ajoute des labels vides pour remplir les 3 colonnes restantes de la ligne
+            for _ in range(3): self.score_table.add_widget(Label())
+        else:
+            for i, row in enumerate(data):
+                self.add_row(i + 1, row)
+
+    def add_header(self):
+        headers = ["#", "Pseudo", "Score", "%"]
+        for h in headers:
+            self.score_table.add_widget(
+                Label(text=h, bold=True, size_hint_y=None, height=40, color=TEAL)
+            )
+
+    def add_row(self, rank, row_data):
+        self.score_table.add_widget(Label(text=str(rank), size_hint_y=None, height=40))
+        self.score_table.add_widget(Label(text=row_data['pseudo'], size_hint_y=None, height=40))
+        self.score_table.add_widget(Label(text=f"{row_data['score']}/{row_data['goalscore']}", size_hint_y=None, height=40))
+        self.score_table.add_widget(Label(text=f"{int(row_data['percent'])}%", size_hint_y=None, height=40))
 
 
 
