@@ -889,7 +889,7 @@ class ShowQuizz(BaseScreen):
         layout.add_widget(score_layout)
 
         btn_layout = BoxLayout(
-            orientation="horizontal", size_hint=(1, None), height=450
+            orientation="horizontal", size_hint=(1, None), height=50
         )
         btn_layout.add_widget(
             Button(
@@ -927,7 +927,7 @@ class ShowQuizz(BaseScreen):
             pseudo=self.app.pseudo,
             # score= self.score_label.text, #voir si je garde ca ou bien si je divise et que je prends self.app.engine.score
             score=self.app.engine.score,
-            goalscore=GOALSCORE,
+            goalscore=self.goal_score,
             continent=self.app.continent,
             mode=self.app.mode,
             type_quizz=self.app.type_quizz,
