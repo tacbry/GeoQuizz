@@ -5,11 +5,11 @@ from pathlib import Path
 
 from engine import Engine
 
-BASEPATH = Path(__name__).parent #permet l'utilisation sur tous les systeme
+BASEPATH = Path(__name__).parent  # permet l'utilisation sur tous les systeme
 
 
-with open(BASEPATH / 'difficulty_set.csv', 'r', encoding='utf-8') as f:
-    diff_data = list(csv.reader(f, delimiter=';'))
+with open(BASEPATH / "difficulty_set.csv", "r", encoding="utf-8") as f:
+    diff_data = list(csv.reader(f, delimiter=";"))
 
 country_data = Engine.load_country_data(Engine())
 
